@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "compiler",
     "pydantic>=2.7.0",
     "pydantic-settings>=2.8.1",
 ]
@@ -13,3 +14,6 @@ dependencies = [
 dev = [
     "ruff>=0.11.5",
 ]
+
+[tool.uv.sources]
+compiler = { path = "compiler", editable = true }

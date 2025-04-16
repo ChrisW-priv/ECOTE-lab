@@ -1,5 +1,5 @@
-from compiler import compiler
-from settings import Settings
+from compiler.default import compiler
+from compiler.settings import Settings
 
 
 def main():
