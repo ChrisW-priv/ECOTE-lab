@@ -58,7 +58,7 @@ class String(Token):
 @dataclass
 class Declaration:
     """
-    Represents a class in the generated C# code
+    Represents an instance declaration in the final code in the Main section
     """
 
     id: str
@@ -70,7 +70,7 @@ class Declaration:
 @dataclass
 class Class:
     """
-    Represents an instance declaration in the generated C# code
+    Represents an instance declaration in the final code in the Main section
     """
 
     name: str
