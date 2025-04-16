@@ -1,10 +1,10 @@
 from compiler import compiler
 from settings import Settings
-import sys
+from pydantic_settings import CliApp
 
 
 def main():
-    settings = Settings(input_file=sys.argv[1], output_dir=sys.argv[2])
+    settings = CliApp.run(Settings)
     compiler(settings.input_file, settings.output_dir)
 
 
