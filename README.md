@@ -38,8 +38,6 @@ The compiler designed for this project follows a classical multi-phase structure
 ## **2. Scanner (Lexical Analysis)**
 
 - **Goal**: Convert character stream into tokens.
-- **Token Types**:
-  - ALPHA, ALPHANUM_UNDER, LT, GT, SLASH, EQ, QUOTE, NOT_QUOTE, EOF, WS
 - **Ignored**: Whitespace outside of quoted strings.
 - **Output**: Iterable stream of tokens for the parser.
 - **Example**:
