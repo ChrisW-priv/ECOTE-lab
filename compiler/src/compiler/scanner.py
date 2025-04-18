@@ -32,91 +32,93 @@ def build_token(state: State) -> Token:
     elif state.state_name == StateName.STRING_END:
         return String(state.accumulated)
     else:
-        raise Exception(f'Cannot build token from state: {state.state_name}')
+        raise InvalidTransitionError(f'Cannot build token from state: {state.state_name}')
 
 
-def build_transition(symbols: set[str]):
-    symbols_first1 = set(symb[0] for symb in symbols)
-    symbols_flat_unique = set(char for symbol in symbols for char in symbol)
+class StateTransition:
+    def __init__(self, symbols: set[str]):
+        self.symbols = symbols
+        self.symbols_first1 = set(symb[0] for symb in symbols)
+        self.symbols_flat_unique = set(char for symbol in symbols for char in symbol)
 
-    def transition(state: State, char: str) -> tuple[State, Optional[Token]]:
-        """
-        Handles state transitions based on the current state and input character.
+        # Mapping from StateName to handler methods
+        self.state_handlers = {
+            StateName.START_STATE: self.handle_start_state,
+            StateName.TEXT_INPUT: self.handle_text_input,
+            StateName.SYMBOL_INPUT: self.handle_symbol_input,
+            StateName.STRING_INPUT: self.handle_string_input,
+            StateName.STRING_END: self.handle_string_end,
+        }
 
-        Args:
-            state (State): The current state.
-            char (str): The input character.
+    def __call__(self, state: State, char: str) -> tuple[State, Optional[Token]]:
+        handler = self.state_handlers.get(state.state_name)
+        if handler is None:
+            raise InvalidTransitionError(f'No handler for state: {state.state_name}')
+        return handler(state, char)
 
-        Returns:
-            tuple[State, Optional[Token]]: The next state and an optional Token to yield.
-        """
-        if state.state_name == StateName.START_STATE:
-            if char.isspace():
-                return State(StateName.START_STATE), None  # Remain in START_STATE
-            if char.isalpha():
-                new_state = State(StateName.TEXT_INPUT, char)
-                return new_state, None
-            if char in symbols_first1:
-                return State(StateName.SYMBOL_INPUT), None
-            if char == '"':
-                return State(StateName.STRING_INPUT, char), None
-            if char.isdigit():
-                raise UnexpectedNumericError('Numeric character encountered in START_STATE.')
-            raise InvalidTransitionError(f"Invalid character '{char}' in START_STATE.")
-
-        elif state.state_name == StateName.TEXT_INPUT:
-            if char.isalpha() or char == '_':
-                new_state = State(StateName.TEXT_INPUT, state.accumulated + char)
-                return new_state, None
-            if char.isspace():
-                token = build_token(state)
-                return State(StateName.START_STATE), token
-            if char in symbols_first1:
-                new_state = State(StateName.SYMBOL_INPUT, char)
-                token = build_token(state)
-                return new_state, token
-            if char == '/':
-                raise UnexpectedSlashError("Unexpected '/' in TEXT_INPUT.")
-            if char.isdigit():
-                raise UnexpectedNumericError('Numeric character encountered in TEXT_INPUT.')
-            raise InvalidTransitionError(f"Invalid character '{char}' in TEXT_INPUT.")
-
-        elif state.state_name == StateName.SYMBOL_INPUT:
-            if char in symbols_flat_unique:
-                new_accumulated = state.accumulated + char
-                if not (symbol.startswith(new_accumulated) for symbol in symbols):
-                    raise InvalidTransitionError(f"Invalid symbol '{new_accumulated}'.")
-                return State(StateName.SYMBOL_INPUT, new_accumulated), None
-            if char.isalpha():
-                token = build_token(state)
-                new_state = State(StateName.TEXT_INPUT, char)
-                return new_state, token
-            if char == '"':
-                token = build_token(state)
-                new_state = State(StateName.STRING_INPUT, char)
-                return new_state, token
-            raise InvalidTransitionError(f"Invalid character '{char}' in SYMBOL_INPUT.")
-
-        elif state.state_name == StateName.STRING_INPUT:
-            if char == '"':
-                new_state = State(StateName.STRING_END, state.accumulated)
-                return new_state, None
-            if char == '\0':
-                raise InvalidTransitionError('EOF encountered in STRING_INPUT.')
-            if char == '\n':
-                raise InvalidTransitionError('Newline encountered in STRING_INPUT.')
-            new_state = State(StateName.STRING_INPUT, state.accumulated + char)
+    def handle_start_state(self, state: State, char: str) -> tuple[State, Optional[Token]]:
+        if char.isspace():
+            return State(StateName.START_STATE, ''), None  # Remain in START_STATE
+        if char.isalpha():
+            new_state = State(StateName.TEXT_INPUT, char)
             return new_state, None
+        if char in self.symbols_first1:
+            return State(StateName.SYMBOL_INPUT, char), None
+        if char == '"':
+            return State(StateName.STRING_INPUT, char), None
+        if char.isdigit():
+            raise UnexpectedNumericError('Numeric character encountered in START_STATE.')
+        raise InvalidTransitionError(f"Invalid character '{char}' in START_STATE.")
 
-        elif state.state_name == StateName.STRING_END:
-            if char.isspace():
-                token = build_token(state)
-                return State(StateName.START_STATE), token
-            raise QuoteFollowedByNonWhitespaceError('Quote followed by non-whitespace character in STRING_END.')
+    def handle_text_input(self, state: State, char: str) -> tuple[State, Optional[Token]]:
+        if char.isalpha() or char == '_':
+            new_state = State(StateName.TEXT_INPUT, state.accumulated + char)
+            return new_state, None
+        if char.isspace():
+            token = build_token(state)
+            return State(StateName.START_STATE), token
+        if char in self.symbols_first1:
+            token = build_token(state)
+            new_state = State(StateName.SYMBOL_INPUT, char)
+            return new_state, token
+        if char == '/':
+            raise UnexpectedSlashError("Unexpected '/' in TEXT_INPUT.")
+        if char.isdigit():
+            raise UnexpectedNumericError('Numeric character encountered in TEXT_INPUT.')
+        raise InvalidTransitionError(f"Invalid character '{char}' in TEXT_INPUT.")
 
-        raise InvalidTransitionError(f'Unknown state: {state.state_name}')
+    def handle_symbol_input(self, state: State, char: str) -> tuple[State, Optional[Token]]:
+        if char in self.symbols_flat_unique:
+            new_accumulated = state.accumulated + char
+            if not any(symbol.startswith(new_accumulated) for symbol in self.symbols):
+                raise InvalidTransitionError(f"Invalid symbol '{new_accumulated}'.")
+            return State(StateName.SYMBOL_INPUT, new_accumulated), None
+        if char.isalpha():
+            token = build_token(state)
+            new_state = State(StateName.TEXT_INPUT, char)
+            return new_state, token
+        if char == '"':
+            token = build_token(state)
+            new_state = State(StateName.STRING_INPUT, char)
+            return new_state, token
+        raise InvalidTransitionError(f"Invalid character '{char}' in SYMBOL_INPUT.")
 
-    return transition
+    def handle_string_input(self, state: State, char: str) -> tuple[State, Optional[Token]]:
+        if char == '"':
+            new_state = State(StateName.STRING_END, state.accumulated)
+            return new_state, None
+        if char == '\0':
+            raise InvalidTransitionError('EOF encountered in STRING_INPUT.')
+        if char == '\n':
+            raise InvalidTransitionError('Newline encountered in STRING_INPUT.')
+        new_state = State(StateName.STRING_INPUT, state.accumulated + char)
+        return new_state, None
+
+    def handle_string_end(self, state: State, char: str) -> tuple[State, Optional[Token]]:
+        if char.isspace():
+            token = build_token(state)
+            return State(StateName.START_STATE), token
+        raise QuoteFollowedByNonWhitespaceError('Quote followed by non-whitespace character in STRING_END.')
 
 
 def scanner(chars: Iterable[str]) -> Iterator[Token]:
@@ -130,7 +132,7 @@ def scanner(chars: Iterable[str]) -> Iterator[Token]:
         Token: The next token in the stream.
     """
     symbols = {'<', '</', '>', '/>', '='}
-    transition = build_transition(symbols)
+    transition = StateTransition(symbols)
     state = State(StateName.START_STATE)
 
     for char in chars:
