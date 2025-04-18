@@ -1,5 +1,5 @@
-![Ruff](https://img.shields.io/badge/ruff-check-brightgreen)
-![Pytest](https://img.shields.io/badge/pytest-passing-brightgreen)
+![Ruff](https://github.com/ChrisW-priv/ECOTE-lab/actions/workflows/ruff.yml/badge.svg)
+![Pytest](https://github.com/ChrisW-priv/ECOTE-lab/actions/workflows/pytest.yml/badge.svg)
 
 # ECOTE-lab
 

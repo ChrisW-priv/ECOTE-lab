@@ -1,7 +1,4 @@
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
-
-name: Python application
+name: Ruff Linting
 
 on:
   push:
@@ -13,8 +10,7 @@ permissions:
   contents: read
 
 jobs:
-  build:
-
+  ruff:
     runs-on: ubuntu-latest
 
     steps:
@@ -28,10 +24,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install uv
         uv sync
-    - name: Lint with ruff
+    - name: Lint with Ruff
       run: |
         uv run ruff format --check
         uv run ruff check
-    - name: Test with pytest
-      run: |
-        uv run pytest
