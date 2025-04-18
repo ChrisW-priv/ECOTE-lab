@@ -125,10 +125,10 @@ def parser(tokens: Iterable[BaseToken]) -> Iterable[XmlToken]:
     Parses a stream of tokens into an Abstract Syntax Tree (AST).
 
     Args:
-        tokens (Iterable[Token]): An iterable stream of tokens.
+        tokens (Iterable[BaseToken]): An iterable of tokens.
 
     Returns:
-        Element: The root of the AST.
+        Iterable of XmlTokens
     """
     state_machine = StateTransition()
     state = State(StateName.START_STATE)

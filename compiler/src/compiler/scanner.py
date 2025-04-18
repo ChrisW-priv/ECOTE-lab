@@ -144,15 +144,15 @@ def scanner(chars: Iterable[str]) -> Iterable[BaseToken]:
         Token: The next token in the stream.
     """
     symbols = {'<', '</', '>', '/>', '='}
-    transition = StateTransition(symbols)
+    state_machine = StateTransition(symbols)
     state = State(StateName.START_STATE)
 
     for char in chars:
-        state, token = transition(state, char)
+        state, token = state_machine(state, char)
         if token:
             yield token
 
     # Handle EOF by making a final transition
-    state, token = transition(state, '\0')  # Use a null character to represent EOF
+    state, token = state_machine(state, '\0')  # Use a null character to represent EOF
     if token:
         yield token
