@@ -31,7 +31,7 @@ class Element:
 
     element_name: str
     attributes: list[ElementAttribute] | None = None
-    children: list["Element"] | None = None
+    children: list['Element'] | None = None
 
 
 class Token(ABC):

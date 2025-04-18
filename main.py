@@ -7,5 +7,5 @@ def main():
     compiler(settings.input_file, settings.output_dir)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

@@ -1,16 +1,30 @@
-from typing import Iterable
+import pytest
+from unittest.mock import mock_open, patch
+
+from compiler.reader import source_reader
 
 
-def source_reader(filename: str) -> Iterable[str]:
-    """
-    Reads characters from the source XML file one by one.
+@pytest.fixture
+def empty_file():
+    m = mock_open(read_data='')
+    with patch('builtins.open', m):
+        yield m
 
-    Args:
-        filename (str): The path to the XML file.
 
-    Yields:
-        str: The next character in the file.
-    """
-    with open(filename, "r") as file:
-        while char := file.read(1):
-            yield char
+@pytest.fixture
+def non_empty_file():
+    m = mock_open(read_data='Hello, World!')
+    with patch('builtins.open', m):
+        yield m
+
+
+def test_source_reader_empty(empty_file):
+    filename = 'dummy.xml'
+    result = list(source_reader(filename))
+    assert result == []
+
+
+def test_source_reader_with_text(non_empty_file):
+    expected = list('Hello, World!')
+    result = list(source_reader('dummy.xml'))
+    assert result == expected

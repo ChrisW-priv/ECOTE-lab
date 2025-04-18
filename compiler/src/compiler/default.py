@@ -12,18 +12,13 @@ def pipe(*functions: Callable) -> Callable:
         for f in functions:
             x = f(x)
         return x
+
     return piped
 
 
 def compiler(input_file: str, output_dir: str) -> None:
     try:
-        generated_code = pipe(
-            source_reader,
-            scanner,
-            parser,
-            semantic_analyser,
-            code_gen
-        )(input_file)
+        generated_code = pipe(source_reader, scanner, parser, semantic_analyser, code_gen)(input_file)
         writer(generated_code, output_dir)
     except Exception as e:
-        print(f"Exception occurred: {type(e).__name__} - {e}")
+        print(f'Exception occurred: {type(e).__name__} - {e}')

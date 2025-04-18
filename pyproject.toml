@@ -17,3 +17,24 @@ dev = [
 
 [tool.uv.sources]
 compiler = { path = "compiler", editable = true }
+
+[tool.ruff]
+builtins = ["_"]
+target-version = "py312"
+extend-exclude = [
+    '.git',
+    '__pycache__',
+    'build',
+    'dist',
+    '.venv',
+    'venv',
+    '.tox',
+    '.mypy_cache',
+    '.pytest_cache',
+    '*/migrations',
+    '*/dev-tools',
+]
+line-length = 120
+
+[tool.ruff.format]
+quote-style = "single"

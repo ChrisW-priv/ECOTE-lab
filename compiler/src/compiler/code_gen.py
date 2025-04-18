@@ -13,5 +13,5 @@ def code_gen(typed_ast: TypedTree) -> dict[str, str]:
     """
     # Implementation of the code generator goes here
     return {
-        "Main.cs": "",
+        'Main.cs': '',
     }
