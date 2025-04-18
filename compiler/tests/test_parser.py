@@ -9,6 +9,19 @@ from compiler.parser import parser
         (
             [
                 Symbol('<'),
+                Text('cat'),
+                Text('Name'),
+                Symbol('='),
+                String('Whiskers'),
+                Symbol('/>'),
+            ],
+            [
+                SelfClosingToken('cat', [ElementAttribute('Name', 'Whiskers')]),
+            ],
+        ),
+        (
+            [
+                Symbol('<'),
                 Text('root'),
                 Symbol('>'),
                 Symbol('<'),

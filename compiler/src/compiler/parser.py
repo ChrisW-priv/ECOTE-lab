@@ -12,7 +12,7 @@ class StateName(StrEnum):
 @dataclass
 class State:
     state_name: StateName
-    accumulated: XmlToken
+    accumulated: XmlToken | None = None
 
 
 class StateTransition:
