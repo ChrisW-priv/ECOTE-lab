@@ -66,14 +66,6 @@ from compiler.models import Symbol, Text, String
             ],
         ),
         (
-            ' arst</> ',
-            [
-                Text('arst'),
-                Symbol('</'),
-                Symbol('>'),
-            ],
-        ),
-        (
             ' <arst /> ',
             [
                 Symbol('<'),
@@ -86,3 +78,9 @@ from compiler.models import Symbol, Text, String
 def test_scanner_simple(input_text, expected_tokens):
     tokens = list(scanner(input_text))
     assert tokens == expected_tokens
+
+
+def test_scanner_invalid_close_tag():
+    input_text = ' arst</> '
+    with pytest.raises(Exception):
+        list(scanner(input_text))

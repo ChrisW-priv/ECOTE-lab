@@ -58,7 +58,7 @@ class StateTransition:
 
     def handle_start_state(self, state: State, char: str) -> tuple[State, Optional[Token]]:
         if char.isspace():
-            return State(StateName.START_STATE, ''), None  # Remain in START_STATE
+            return State(StateName.START_STATE), None  # Remain in START_STATE
         if char.isalpha():
             new_state = State(StateName.TEXT_INPUT, char)
             return new_state, None
@@ -66,6 +66,8 @@ class StateTransition:
             return State(StateName.SYMBOL_INPUT, char), None
         if char == '"':
             return State(StateName.STRING_INPUT, char), None
+        if char == '\0':
+            return State(StateName.START_STATE), None
         if char.isdigit():
             raise UnexpectedNumericError('Numeric character encountered in START_STATE.')
         raise InvalidTransitionError(f"Invalid character '{char}' in START_STATE.")
@@ -99,7 +101,15 @@ class StateTransition:
             return new_state, token
         if char == '"':
             token = build_token(state)
-            new_state = State(StateName.STRING_INPUT, char)
+            new_state = State(StateName.STRING_INPUT)
+            return new_state, token
+        if char == '\0':
+            token = build_token(state)
+            new_state = State(StateName.START_STATE)
+            return new_state, token
+        if char.isspace():
+            token = build_token(state)
+            new_state = State(StateName.START_STATE)
             return new_state, token
         raise InvalidTransitionError(f"Invalid character '{char}' in SYMBOL_INPUT.")
 
@@ -115,9 +125,12 @@ class StateTransition:
         return new_state, None
 
     def handle_string_end(self, state: State, char: str) -> tuple[State, Optional[Token]]:
-        if char.isspace() or char in self.symbols_first1:
+        if char.isspace():
             token = build_token(state)
             return State(StateName.START_STATE), token
+        if char in self.symbols_first1:
+            token = build_token(state)
+            return State(StateName.SYMBOL_INPUT, char), token
         raise QuoteFollowedByNonWhitespaceError('Quote followed by non-whitespace character in STRING_END.')
 
 
