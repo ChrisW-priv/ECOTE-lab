@@ -1,7 +1,7 @@
 import pytest
 
 from compiler.models import Symbol, Text, String, StartToken, EndToken, SelfClosingToken, ElementAttribute, XmlElement
-from compiler.parser import build_xml_tokens, parser
+from compiler.parser import build_ast, build_xml_tokens
 from compiler.errors import InvalidTransitionError
 
 
@@ -215,8 +215,8 @@ def test_semantic_analyser_success(tokens, expected):
     """
     Test the semantic_analyser with valid token sequences.
     """
-    typed_tree = parser(tokens)
-    assert typed_tree == expected
+    tree = build_ast(tokens)
+    assert tree == expected
 
 
 @pytest.mark.parametrize(
@@ -269,5 +269,5 @@ def test_semantic_analyser_failure(tokens, expected_exception, exception_message
     Test the semantic_analyser with invalid token sequences expecting failures.
     """
     with pytest.raises(expected_exception) as exc_info:
-        parser(tokens)
+        build_ast(tokens)
     assert str(exc_info.value) == exception_message
