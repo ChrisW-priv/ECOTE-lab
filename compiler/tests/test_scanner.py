@@ -75,7 +75,7 @@ from compiler.models import Symbol, Text, String
         ),
     ],
 )
-def test_scanner_simple(input_text, expected_tokens):
+def test_scanner(input_text, expected_tokens):
     tokens = list(scanner(input_text))
     assert tokens == expected_tokens
 

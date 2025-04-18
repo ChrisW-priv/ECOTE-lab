@@ -5,7 +5,7 @@ from compiler.models import (
     Class,
     ClassAttribute,
     Declaration,
-    ElementAttribute,
+    InstanceAttribute,
 )
 
 
@@ -27,8 +27,8 @@ def typed_tree_class1():
                 instance_name='cat',
                 class_name='Class1',
                 attributes=[
-                    ElementAttribute(name='Name', value='Whiskers'),
-                    ElementAttribute(name='Parent', value=None),
+                    InstanceAttribute(name='Name', value='Whiskers'),
+                    InstanceAttribute(name='Parent', value=None),
                 ],
             ),
         ],
@@ -77,8 +77,8 @@ def typed_tree_class2():
                 instance_name='owner',
                 class_name='Class2',
                 attributes=[
-                    ElementAttribute(name='Name', value='John'),
-                    ElementAttribute(name='Companion', value=None),
+                    InstanceAttribute(name='Name', value='John'),
+                    InstanceAttribute(name='Companion', value=None),
                 ],
             ),
         ],
@@ -133,7 +133,7 @@ def typed_tree_class3():
                 instance_name='companion',
                 class_name='Class1',
                 attributes=[
-                    ElementAttribute(name='Name', value='Whiskers'),
+                    InstanceAttribute(name='Name', value='Whiskers'),
                 ],
             ),
             Declaration(
@@ -141,8 +141,8 @@ def typed_tree_class3():
                 instance_name='owner',
                 class_name='Class2',
                 attributes=[
-                    ElementAttribute(name='Name', value='Fluffy'),
-                    ElementAttribute(name='Companion', value=None, ref='0001'),
+                    InstanceAttribute(name='Name', value='Fluffy'),
+                    InstanceAttribute(name='Companion', value=None, ref='0001'),
                 ],
             ),
         ],

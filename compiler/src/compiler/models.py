@@ -13,6 +13,17 @@ class ClassAttribute:
 
 
 @dataclass
+class InstanceAttribute:
+    """
+    Represents an Attribute of an instance in the C# code
+    """
+
+    name: str
+    value: str | None = None
+    ref: str | None = None
+
+
+@dataclass
 class ElementAttribute:
     """
     Represents an Attribute of an XML element
@@ -20,7 +31,6 @@ class ElementAttribute:
 
     name: str
     value: str | None
-    ref: str | None = None
 
 
 @dataclass
@@ -34,25 +44,48 @@ class Element:
     children: list['Element'] | None = None
 
 
-class Token(ABC):
+class BaseToken(ABC):
     """
     Represents a lexical token produced by the scanner.
     """
 
 
 @dataclass(slots=True, frozen=True)
-class Symbol(Token):
+class Symbol(BaseToken):
     value: str
 
 
 @dataclass(slots=True, frozen=True)
-class Text(Token):
+class Text(BaseToken):
     value: str
 
 
 @dataclass(slots=True, frozen=True)
-class String(Token):
+class String(BaseToken):
     value: str
+
+
+class XmlToken(ABC):
+    """
+    Represents an XML token produced by the parser.
+    """
+
+
+@dataclass(slots=True, frozen=True)
+class StartToken(XmlToken):
+    name: str
+    attributes: list[ElementAttribute] | None = None
+
+
+@dataclass(slots=True, frozen=True)
+class SelfClosingToken(XmlToken):
+    name: str
+    attributes: list[ElementAttribute] | None = None
+
+
+@dataclass(slots=True, frozen=True)
+class EndToken(XmlToken):
+    name: str
 
 
 @dataclass
@@ -64,7 +97,7 @@ class Declaration:
     id: str
     instance_name: str
     class_name: str
-    attributes: list[ElementAttribute]
+    attributes: list[InstanceAttribute] | None = None
 
 
 @dataclass

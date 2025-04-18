@@ -21,8 +21,9 @@ class files. Each stage of the pipeline plays a specific role:
 2. **Scanner (Lexical Analyzer)**
 3. **Parser (Syntactic Analyzer)**
 4. **Semantic Analyzer**
-5. **Code Generator**
-6. **Writer**
+5. **Intermediate Code Generation**
+6. **Code Generator**
+7. **Writer**
 
 ---
 
@@ -69,16 +70,99 @@ class files. Each stage of the pipeline plays a specific role:
 - **Goal**: Create Abstract Syntax Tree (AST) from token stream.
 - **Transformations**:
   - Organize the XML into a tree-like AST structure representing hierarchy and attributes.
+
 - **Example**:
   ```xml
   <root>
     <kitten Name="Whiskers">
-        </parent>
+        <parent>
             <cat Name="The Garfield"/>
         </parent>
     </kitten>
   </root>
   ```
+  becomes:
+  ```json
+    XmlToken(kind=startTag, name=root)
+    XmlToken(kind=startTag, name=kitten, attributes=[Attribute("Name", "Whiskers"))
+    XmlToken(kind=startTag, name=parent)
+    XmlToken(kind=selfClosingTag, name=cat, attributes=[Attribute("Name", "The Garfield"))
+    XmlToken(kind=endTag, name=parent)
+    XmlToken(kind=endTag, name=kitten)
+    XmlToken(kind=endTag, name=root)
+  ```
+
+  OR
+  ```xml 
+  <root>
+    <kitten Name="Whiskers"/>
+  </root>
+  ```
+  becomes:
+  ```text 
+  ElementStart(name=root)
+      ElementStart(name=kitten, attributes=[Attribute("Name", "Whiskers"))
+  ElementEnd(name=root)
+  ```
+
+---
+
+## **4. Semantic Analyzer**
+
+- **Goal**: Enforce rules on the AST structure.
+- **Checks**:
+  - Root rule: must start and end with `<root>` tags.
+  - Duplicate or mixed-type lists → error
+- **Transformations**:
+  - Identifies classes, lists, instances
+  - Assigns types to each element
+- **Example**:
+
+  ```json
+  ElementStart(name=root)
+      ElementStart(name=kitten, attributes=[Attribute("Name", "Whiskers"))
+          ElementStart(name=parent)
+              ElementStart(name=cat, attributes=[Attribute("Name", "The Garfield"))
+          ElementEnd(name=parent)
+      ElementEnd(name=kitten)
+  ElementEnd(name=root)
+  ```
+  becomes:
+  ```json
+  {
+      "element_name": "root",
+      "children": [
+          {
+              "element_name": "kitten",
+              "attributes": [
+                  {
+                      "name": "Name",
+                      "value": "Whiskers"
+                  },
+              ],
+              "children": [
+                  {
+                      "element_name": "parent",
+                      "attributes": [],
+                      "children": [
+                          {
+                              "element_name": "cat",
+                              "attributes": [
+                                  {
+                                      "name": "Name",
+                                      "value": "The Garfield"
+                                  },
+                              ],
+                              "children": [ ]
+                          }
+                      ]
+                  }
+              ]
+          }
+      ]
+  }
+  ```
+  
   becomes:
   ```json
   {
@@ -117,53 +201,9 @@ class files. Each stage of the pipeline plays a specific role:
 
 ---
 
-## **4. Semantic Analyzer**
+## **5. Intermediate Code Generator**
 
-- **Goal**: Enforce rules on the AST structure.
-- **Checks**:
-  - Root rule: must start and end with `<root>` tags.
-  - Duplicate or mixed-type lists → error
-- **Transformations**:
-  - Identifies classes, lists, instances
-  - Assigns types to each element
-- **Example**:
 
-  ```json
-  {
-      "element_name": "root",
-      "children": [
-          {
-              "element_name": "kitten",
-              "attributes": [
-                  {
-                      "name": "Name",
-                      "value": "Whiskers"
-                  },
-              ],
-              "children": [
-                  {
-                      "element_name": "parent",
-                      "attributes": [],
-                      "children": [
-                          {
-                              "element_name": "cat",
-                              "attributes": [
-                                  {
-                                      "name": "Name",
-                                      "value": "The Garfield"
-                                  },
-                              ],
-                              "children": [ ]
-                          }
-                      ]
-                  }
-              ]
-          }
-      ]
-  }
-  ```
-  
-  becomes:
   ```json
   {
       "types": [
@@ -217,19 +257,16 @@ class files. Each stage of the pipeline plays a specific role:
   }
   ```
 
-Note: this may seem overblown, but this step makes the later code gen trivial. 
-and yes, this is trivial later ONLY because we do hard things first but I dygress
-
 ---
 
-## **5. Code Generator**
+## **6. Code Generator**
 
 - **Goal**: Generate C# code representations.
 - **Output**: Map of `filename` to an expected content of that file
 
 ---
 
-## **6. Writer**
+## **7. Writer**
 
 - **Goal**: Write generated code to disk.
 - **Output**: None -> this step saves files to disk 

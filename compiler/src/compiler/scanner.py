@@ -7,7 +7,7 @@ from compiler.errors import (
     UnexpectedNumericError,
     QuoteFollowedByNonWhitespaceError,
 )
-from compiler.models import Token, Symbol, Text, String
+from compiler.models import BaseToken, Symbol, Text, String
 
 
 class StateName(StrEnum):
@@ -24,7 +24,7 @@ class State:
     accumulated: str = ''
 
 
-def build_token(state: State) -> Token:
+def build_token(state: State) -> BaseToken:
     if state.state_name == StateName.TEXT_INPUT:
         return Text(state.accumulated)
     if state.state_name == StateName.SYMBOL_INPUT:
@@ -49,13 +49,13 @@ class StateTransition:
             StateName.STRING_END: self.handle_string_end,
         }
 
-    def __call__(self, state: State, char: str) -> tuple[State, Token | None]:
+    def __call__(self, state: State, char: str) -> tuple[State, BaseToken | None]:
         handler = self.state_handlers.get(state.state_name)
         if handler is None:
             raise InvalidTransitionError(f'No handler for state: {state.state_name}')
         return handler(state, char)
 
-    def handle_start_state(self, state: State, char: str) -> tuple[State, Token | None]:
+    def handle_start_state(self, state: State, char: str) -> tuple[State, BaseToken | None]:
         if char.isspace():
             return State(StateName.START_STATE), None  # Remain in START_STATE
         if char.isalpha():
@@ -71,7 +71,7 @@ class StateTransition:
             raise UnexpectedNumericError('Numeric character encountered in START_STATE.')
         raise InvalidTransitionError(f"Invalid character '{char}' in START_STATE.")
 
-    def handle_text_input(self, state: State, char: str) -> tuple[State, Token | None]:
+    def handle_text_input(self, state: State, char: str) -> tuple[State, BaseToken | None]:
         if char.isalpha() or char == '_':
             new_state = State(StateName.TEXT_INPUT, state.accumulated + char)
             return new_state, None
@@ -88,7 +88,7 @@ class StateTransition:
             raise UnexpectedNumericError('Numeric character encountered in TEXT_INPUT.')
         raise InvalidTransitionError(f"Invalid character '{char}' in TEXT_INPUT.")
 
-    def handle_symbol_input(self, state: State, char: str) -> tuple[State, Token | None]:
+    def handle_symbol_input(self, state: State, char: str) -> tuple[State, BaseToken | None]:
         if char in self.symbols_flat_unique:
             new_accumulated = state.accumulated + char
             if not any(symbol.startswith(new_accumulated) for symbol in self.symbols):
@@ -112,7 +112,7 @@ class StateTransition:
             return new_state, token
         raise InvalidTransitionError(f"Invalid character '{char}' in SYMBOL_INPUT.")
 
-    def handle_string_input(self, state: State, char: str) -> tuple[State, Token | None]:
+    def handle_string_input(self, state: State, char: str) -> tuple[State, BaseToken | None]:
         if char == '"':
             new_state = State(StateName.STRING_END, state.accumulated)
             return new_state, None
@@ -123,7 +123,7 @@ class StateTransition:
         new_state = State(StateName.STRING_INPUT, state.accumulated + char)
         return new_state, None
 
-    def handle_string_end(self, state: State, char: str) -> tuple[State, Token | None]:
+    def handle_string_end(self, state: State, char: str) -> tuple[State, BaseToken | None]:
         if char.isspace():
             token = build_token(state)
             return State(StateName.START_STATE), token
@@ -133,7 +133,7 @@ class StateTransition:
         raise QuoteFollowedByNonWhitespaceError('Quote followed by non-whitespace character in STRING_END.')
 
 
-def scanner(chars: Iterable[str]) -> Iterable[Token]:
+def scanner(chars: Iterable[str]) -> Iterable[BaseToken]:
     """
     Converts a stream of characters into tokens using a state machine.
 
