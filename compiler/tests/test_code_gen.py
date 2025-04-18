@@ -96,12 +96,12 @@ def expected_main_for_class2_typed_tree():
 
 
 def test_code_gen_class1(typed_tree_class1, expected_code_class1, expected_main_for_class1_typed_tree):
-    expected = expected_main_for_class1_typed_tree.update(expected_code_class1)
+    expected = expected_main_for_class1_typed_tree | expected_code_class1
     result = code_gen(typed_tree_class1)
     assert result == expected
 
 
 def test_code_gen_class2(typed_tree_class2, expected_code_class2, expected_main_for_class2_typed_tree):
-    expected = expected_main_for_class2_typed_tree.update(expected_code_class2)
+    expected = expected_main_for_class2_typed_tree | expected_code_class2
     result = code_gen(typed_tree_class2)
     assert result == expected
