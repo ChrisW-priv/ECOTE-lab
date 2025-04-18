@@ -44,3 +44,22 @@ STRING_END:
 
 Note: FLAT_UNIQUE is a special function that take in a list of strings, and
 returns all unique characters across all strings combined
+
+
+## Parser State Transition
+
+Now that we have our TOKENS defined, it is time to define the transitions on those tokens.
+In my mind, it is way easier to first strongly define our grammar using the regular expressions.
+We will start by defining ATTRIBUTE pattern:
+
+- ATTRIBUTE := TEXT(*) SYMBOL(=) STRING(*)
+
+and now, we can use it to define ELEMENT pattern. But there is more than one! So we will start with a basics:
+
+- ELEMENT_START := SYMBOL(<) TEXT(*) ATTRIBUTE* SYMBOL(>)
+- ELEMENT_END := SYMBOL(<) TEXT(*) SYMBOL(>)
+
+and now, let us define the ELEMENT:
+
+- ELEMENT := ELEMENT_START ELEMENT* ELEMENT_END
+- ELEMENT := SYMBOL(<) TEXT(*) ATTRIBUTE* SYMBOL(/>)
