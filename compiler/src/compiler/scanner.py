@@ -27,12 +27,11 @@ class State:
 def build_token(state: State) -> Token:
     if state.state_name == StateName.TEXT_INPUT:
         return Text(state.accumulated)
-    elif state.state_name in {StateName.SYMBOL_INPUT}:
+    if state.state_name == StateName.SYMBOL_INPUT:
         return Symbol(state.accumulated)
-    elif state.state_name == StateName.STRING_END:
+    if state.state_name == StateName.STRING_END:
         return String(state.accumulated)
-    else:
-        raise InvalidTransitionError(f'Cannot build token from state: {state.state_name}')
+    raise InvalidTransitionError(f'Cannot build token from state: {state.state_name}')
 
 
 class StateTransition:
