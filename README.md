@@ -5,11 +5,17 @@
 
 ## Project Overview
 
-ECOTE-lab's compiler pipeline transforms XML files into C# class files through a structured multi-phase process. The pipeline includes source reading, lexical analysis, syntax parsing, semantic analysis, code generation, and writing the output to disk. This ensures efficient and accurate conversion tailored for project-specific requirements.
+ECOTE-lab's compiler pipeline transforms XML files into C# class files through
+a structured multi-phase process. The pipeline includes source reading, lexical
+analysis, syntax parsing, semantic analysis, code generation, and writing the
+output to disk. This ensures efficient and accurate conversion tailored for
+project-specific requirements.
 
 ## **Compiler Pipeline Overview**
 
-The compiler designed for this project follows a classical multi-phase structure, tailored specifically for converting XML files into corresponding C# class files. Each stage of the pipeline plays a specific role:
+The compiler designed for this project follows a classical multi-phase
+structure, tailored specifically for converting XML files into corresponding C#
+class files. Each stage of the pipeline plays a specific role:
 
 1. **Source**
 2. **Scanner (Lexical Analyzer)**
