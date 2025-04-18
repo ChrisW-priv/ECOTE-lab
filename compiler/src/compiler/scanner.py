@@ -1,4 +1,3 @@
-import itertools
 from typing import Iterable
 from compiler.models import Token, Symbol, Text, String
 
