@@ -172,7 +172,7 @@ Should become (skiping scanner + parser stages):
 
 This way, we will get easy to parse XmlElements.
 
-### Verify correctness
+### Verify the correctness
 
 From the nature of the Tokens (Start/End) this is actually a classical CS
 problem. This example is usually in the form: "Having symbols `()[]{}` make
@@ -193,5 +193,15 @@ same will result in us being able to solve this problem.
 
 ### Build AST
 
-#TODO: finish this section
+While we could verify the XmlTokens Iterable and then generate AST using some
+hacked solutions, we can also adapt the algorithm to build AST in a single pass
+
+0. stack := []; inter_list := [];
+1. next_token := read next token  # I no next token, but inter_list or stack
+   are not empty: raise error, else finish
+2. if next_token.type = Start -> push it to stack 
+3. if next_token.type = SelfClosing -> Build XmlElement and push it to inter_list
+4. if next_token.type = End:
+    1. if stack.top.name != next_token.name: raise error: mismatching Tokens
+    2. else: Build XmlElement and set it's children to inter_list; inter_list = []
 
