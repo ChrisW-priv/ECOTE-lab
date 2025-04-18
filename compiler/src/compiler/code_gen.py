@@ -1,4 +1,4 @@
-from compiler.models import TypedTree, ClassAttribute
+from compiler.models import TypedTree, ClassAttribute, Declaration
 
 
 def generate_class_code(class_name: str, attributes: list[ClassAttribute]) -> str:
@@ -53,7 +53,67 @@ def generate_class_code(class_name: str, attributes: list[ClassAttribute]) -> st
     return '\n'.join(lines)
 
 
+def generate_instance_declaration(decl: Declaration, instances: dict) -> tuple[str, dict]:
+    """
+    Generates a single instance declaration line for Main.cs based on the declaration.
+
+    Args:
+        decl (Declaration): The declaration object containing instance details.
+        instances (dict): A dictionary mapping declaration IDs to instance names.
+
+    Returns:
+        str: The generated instance declaration line as a string.
+    """
+    class_name = decl.class_name
+    instance_name = decl.instance_name
+    args = []
+    for attr in decl.attributes:
+        if attr.ref:
+            # Reference to another instance
+            ref_instance = instances.get(attr.ref)
+            if not ref_instance:
+                raise ValueError(f'Reference ID {attr.ref} not found.')
+            args.append(ref_instance)
+        elif attr.value is not None:
+            # Only append value if ref is not present
+            args.append(f'"{attr.value}"')
+        else:
+            # If neither ref nor value is present, append null
+            args.append('null')
+    args_str = ', '.join(args)
+    declaration_line = f'{class_name} {instance_name} = new {class_name}({args_str});'
+    instances[decl.id] = instance_name  # Store instance for future references
+    return declaration_line, instances
+
+
+def generate_main(declarations: list[Declaration]) -> str:
+    """
+    Generates the content for Main.cs based on the declarations.
+
+    Args:
+        declarations (List[Declaration]): The list of declarations.
+
+    Returns:
+        str: The generated Main.cs content.
+    """
+    main_lines = []
+    instances = {}
+    for decl in declarations:
+        declaration_line, instances = generate_instance_declaration(decl, instances)
+        main_lines.append(declaration_line)
+    return '\n'.join(main_lines)
+
+
 def code_gen(typed_ast: TypedTree) -> dict[str, str]:
+    """
+    Generates C# code from the AST.
+
+    Args:
+        typed_ast (TypedTree): The semantically analyzed AST.
+
+    Returns:
+        Dict[str, str]: A mapping from filenames to their C# code content.
+    """
     """
     Generates C# code from the AST.
 
@@ -65,37 +125,13 @@ def code_gen(typed_ast: TypedTree) -> dict[str, str]:
     """
     code_files = {}
 
-    instances = {}
-    for cls in typed_ast.types:
-        class_code = generate_class_code(cls.name, cls.attributes)
-        filename = f'{cls.name}.cs'
+    for new_type in typed_ast.types:
+        class_code = generate_class_code(new_type.name, new_type.attributes)
+        filename = f'{new_type.name}.cs'
         code_files[filename] = class_code
 
     # Generate Main.cs based on declarations
-    main_lines = []
-    for decl in typed_ast.declarations:
-        class_name = decl.class_name
-        instance_name = decl.instance_name
-        # Prepare constructor arguments
-        args = []
-        for attr in decl.attributes:
-            if attr.ref:
-                # Reference to another instance
-                ref_instance = instances.get(attr.ref)
-                if not ref_instance:
-                    raise ValueError(f'Reference ID {attr.ref} not found.')
-                args.append(ref_instance)
-            elif attr.value is not None:
-                # Only append value if ref is not present
-                args.append(f'"{attr.value}"')
-            else:
-                # If neither ref nor value is present, append null
-                args.append('null')
-        args_str = ', '.join(args)
-        main_lines.append(f'{class_name} {instance_name} = new {class_name}({args_str});')
-
-        instances[decl.id] = instance_name  # Store instance for references
-
-    code_files['Main.cs'] = '\n'.join(main_lines)
+    main_content = generate_main(typed_ast.declarations)
+    code_files['Main.cs'] = main_content
 
     return code_files
