@@ -1,4 +1,11 @@
+![Ruff](https://img.shields.io/badge/ruff-check-brightgreen)
+![Pytest](https://img.shields.io/badge/pytest-passing-brightgreen)
+
 # ECOTE-lab
+
+## Project Overview
+
+ECOTE-lab's compiler pipeline transforms XML files into C# class files through a structured multi-phase process. The pipeline includes source reading, lexical analysis, syntax parsing, semantic analysis, code generation, and writing the output to disk. This ensures efficient and accurate conversion tailored for project-specific requirements.
 
 ## **Compiler Pipeline Overview**
 
