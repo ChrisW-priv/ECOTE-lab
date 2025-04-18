@@ -1,4 +1,4 @@
-from compiler.models import TypedTree, ClassAttribute, Declaration
+from compiler.models import IntermediateCode, ClassAttribute, Declaration
 
 
 def generate_class_code(class_name: str, attributes: list[ClassAttribute]) -> str:
@@ -104,7 +104,7 @@ def generate_main(declarations: list[Declaration]) -> str:
     return '\n'.join(main_lines)
 
 
-def code_gen(typed_ast: TypedTree) -> dict[str, str]:
+def code_gen(intermediate_code: IntermediateCode) -> dict[str, str]:
     """
     Generates C# code from the AST.
 
@@ -125,13 +125,13 @@ def code_gen(typed_ast: TypedTree) -> dict[str, str]:
     """
     code_files = {}
 
-    for new_type in typed_ast.types:
+    for new_type in intermediate_code.types:
         class_code = generate_class_code(new_type.name, new_type.attributes)
         filename = f'{new_type.name}.cs'
         code_files[filename] = class_code
 
     # Generate Main.cs based on declarations
-    main_content = generate_main(typed_ast.declarations)
+    main_content = generate_main(intermediate_code.declarations)
     code_files['Main.cs'] = main_content
 
     return code_files

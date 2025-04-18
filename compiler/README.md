@@ -205,3 +205,7 @@ hacked solutions, we can also adapt the algorithm to build AST in a single pass
     1. if stack.top.name != next_token.name: raise error: mismatching Tokens
     2. else: Build XmlElement and set it's children to inter_list; inter_list = []
 
+
+## Intermediate Code Generation
+
+

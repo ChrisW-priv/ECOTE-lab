@@ -12,6 +12,7 @@ from compiler.models import (
     Symbol,
     Text,
     String,
+    XmlElement,
 )
 
 
@@ -120,9 +121,9 @@ class StateTransition:
         return handler(state, token)
 
 
-def parser(tokens: Iterable[BaseToken]) -> Iterable[XmlToken]:
+def build_xml_tokens(tokens: Iterable[BaseToken]) -> Iterable[XmlToken]:
     """
-    Parses a stream of tokens into an Abstract Syntax Tree (AST).
+    Takes base tokens and generates xml tokens from them.
 
     Args:
         tokens (Iterable[BaseToken]): An iterable of tokens.
@@ -137,3 +138,57 @@ def parser(tokens: Iterable[BaseToken]) -> Iterable[XmlToken]:
         state, xml_token = state_machine(state, base_token)
         if xml_token:
             yield xml_token
+
+
+def build_ast(tokens: Iterable[XmlToken]) -> XmlElement:
+    """
+    Takes an Iterable of XmlTokens and builds an AST from them
+
+    Args:
+        tokens (Iterable[XmlToken]): XML tokens.
+
+    Returns:
+        tree_root: Roof of an AST.
+    """
+    stack = []
+    inter_list = []
+
+    for token in tokens:
+        if isinstance(token, StartToken):
+            stack.append(token)
+        elif isinstance(token, SelfClosingToken):
+            element = XmlElement(element_name=token.name, attributes=token.attributes)
+            inter_list.append(element)
+        elif isinstance(token, EndToken):
+            if not stack:
+                raise InvalidTransitionError(f'Mismatching token end, never opened: {token.name}')
+            if stack and stack[-1].name != token.name:
+                raise InvalidTransitionError(f'Mismatching tokens: {stack[-1].name} and {token.name}')
+            start_token = stack.pop()
+            children = inter_list if inter_list else None
+            element = XmlElement(element_name=start_token.name, attributes=start_token.attributes, children=children)
+            inter_list = [element]
+        else:
+            raise InvalidTransitionError('Unexpected token type')
+
+    if stack:
+        raise InvalidTransitionError('Unmatched start tokens remain')
+    if len(inter_list) != 1:
+        raise InvalidTransitionError('There is more than one root element!')
+
+    return inter_list[0]
+
+
+def parser(tokens: Iterable[BaseToken]) -> XmlElement:
+    """
+    Parses a stream of tokens into an Abstract Syntax Tree (AST).
+
+    Args:
+        tokens (Iterable[BaseToken]): An iterable of tokens.
+
+    Returns:
+        ast: root of ast
+    """
+    xml_tokens = build_xml_tokens(tokens)
+    ast = build_ast(xml_tokens)
+    return ast

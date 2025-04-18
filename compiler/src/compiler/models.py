@@ -2,48 +2,6 @@ from abc import ABC
 from dataclasses import dataclass
 
 
-@dataclass
-class ClassAttribute:
-    """
-    Represents an Attribute of a C# Class
-    """
-
-    name: str
-    attribute_type: str
-
-
-@dataclass
-class InstanceAttribute:
-    """
-    Represents an Attribute of an instance in the C# code
-    """
-
-    name: str
-    value: str | None = None
-    ref: str | None = None
-
-
-@dataclass
-class ElementAttribute:
-    """
-    Represents an Attribute of an XML element
-    """
-
-    name: str
-    value: str | None
-
-
-@dataclass
-class XmlElement:
-    """
-    Represents an element in the Abstract Syntax Tree (AST).
-    """
-
-    element_name: str
-    attributes: list[ElementAttribute] | None = None
-    children: list['XmlElement'] | None = None
-
-
 class BaseToken(ABC):
     """
     Represents a lexical token produced by the scanner.
@@ -71,6 +29,16 @@ class XmlToken(ABC):
     """
 
 
+@dataclass
+class ElementAttribute:
+    """
+    Represents an Attribute of an XML element
+    """
+
+    name: str
+    value: str | None
+
+
 @dataclass(slots=True, frozen=True)
 class StartToken(XmlToken):
     name: str
@@ -86,6 +54,46 @@ class SelfClosingToken(XmlToken):
 @dataclass(slots=True, frozen=True)
 class EndToken(XmlToken):
     name: str
+
+
+@dataclass
+class XmlElement:
+    """
+    Represents an element in the Abstract Syntax Tree (AST).
+    """
+
+    element_name: str
+    attributes: list[ElementAttribute] | None = None
+    children: list['XmlElement'] | None = None
+
+
+@dataclass
+class TypedXmlElement:
+    element_name: str
+    identified_role: str
+    attributes: list[ElementAttribute] | None = None
+    children: list['TypedXmlElement'] | None = None
+
+
+@dataclass
+class ClassAttribute:
+    """
+    Represents an Attribute of a C# Class
+    """
+
+    name: str
+    attribute_type: str
+
+
+@dataclass
+class InstanceAttribute:
+    """
+    Represents an Attribute of an instance in the C# code
+    """
+
+    name: str
+    value: str | None = None
+    ref: str | None = None
 
 
 @dataclass
@@ -111,6 +119,6 @@ class Class:
 
 
 @dataclass
-class TypedTree:
+class IntermediateCode:
     types: list[Class]
     declarations: list[Declaration]

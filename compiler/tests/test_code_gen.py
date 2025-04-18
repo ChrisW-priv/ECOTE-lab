@@ -1,7 +1,8 @@
 import pytest
+
 from compiler.code_gen import code_gen, generate_class_code
 from compiler.models import (
-    TypedTree,
+    IntermediateCode,
     Class,
     ClassAttribute,
     Declaration,
@@ -11,7 +12,7 @@ from compiler.models import (
 
 @pytest.fixture
 def typed_tree_class1():
-    return TypedTree(
+    return IntermediateCode(
         types=[
             Class(
                 name='Class1',
@@ -61,7 +62,7 @@ def test_code_gen_class1(typed_tree_class1, expected_code_class1, expected_main_
 
 @pytest.fixture
 def typed_tree_class2():
-    return TypedTree(
+    return IntermediateCode(
         types=[
             Class(
                 name='Class2',
@@ -111,7 +112,7 @@ def test_code_gen_class2(typed_tree_class2, expected_code_class2, expected_main_
 
 @pytest.fixture
 def typed_tree_class3():
-    return TypedTree(
+    return IntermediateCode(
         types=[
             Class(
                 name='Class1',
