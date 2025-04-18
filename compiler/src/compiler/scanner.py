@@ -115,7 +115,7 @@ class StateTransition:
         return new_state, None
 
     def handle_string_end(self, state: State, char: str) -> tuple[State, Optional[Token]]:
-        if char.isspace():
+        if char.isspace() or char in self.symbols_first1:
             token = build_token(state)
             return State(StateName.START_STATE), token
         raise QuoteFollowedByNonWhitespaceError('Quote followed by non-whitespace character in STRING_END.')
