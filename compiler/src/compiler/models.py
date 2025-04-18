@@ -34,14 +34,14 @@ class ElementAttribute:
 
 
 @dataclass
-class Element:
+class XmlElement:
     """
     Represents an element in the Abstract Syntax Tree (AST).
     """
 
     element_name: str
     attributes: list[ElementAttribute] | None = None
-    children: list['Element'] | None = None
+    children: list['XmlElement'] | None = None
 
 
 class BaseToken(ABC):
