@@ -74,7 +74,7 @@ from compiler.parser import parser
                 StartToken('root'),
                 StartToken('kitten', [ElementAttribute('Name', 'Whiskers')]),
                 StartToken('parent'),
-                StartToken('cat', [ElementAttribute('Name', 'The Garfield')]),
+                SelfClosingToken('cat', [ElementAttribute('Name', 'The Garfield')]),
                 EndToken('parent'),
                 EndToken('kitten'),
                 EndToken('root'),
