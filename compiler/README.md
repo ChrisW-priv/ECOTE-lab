@@ -112,3 +112,86 @@ ELEMENT_END_VERIFY:
 
 - on SYMBOL(>): yield current EndToken, GOTO IN_DOCUMENT
 - else: raise error. There can be no other structure in closing element than 
+
+## Semantic Analysis
+
+From the previous step we have an Iterable of XmlTokens.
+Now, it makes sense to both:
+
+- Analyze if all tokens follow the basic rules
+- Create a Typed AST, that is easy to parse recursively
+
+First, let us define what we will expect on the output. Basic tree like:
+
+```xml 
+<root>
+    <kitten Name="Whiskers">
+        <parent>
+            <cat Name="The Garfield"/>
+        </parent>
+    </kitten>
+</root>
+```
+
+Should become (skiping scanner + parser stages):
+
+```json
+{
+    "element_name": "root",
+    "children": [
+        {
+            "element_name": "kitten",
+            "attributes": [
+                {
+                    "name": "Name",
+                    "value": "Whiskers"
+                },
+            ],
+            "children": [
+                {
+                    "element_name": "parent",
+                    "attributes": null,
+                    "children": [
+                        {
+                            "element_name": "cat",
+                            "attributes": [
+                                {
+                                    "name": "Name",
+                                    "value": "The Garfield"
+                                },
+                            ],
+                            "children": null
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
+```
+
+This way, we will get easy to parse XmlElements.
+
+### Verify correctness
+
+From the nature of the Tokens (Start/End) this is actually a classical CS
+problem. This example is usually in the form: "Having symbols `()[]{}` make
+sure the input string has valid order of symbols"; Examples:
+
+- Correct: `()[]{}`, `{(())[]}`, etc.
+- InCorrect: `([)]{}`, `({())[]}`, etc.
+
+So the solution is really easy: To verify that each Start Token has a
+corresponding End Token (and in correct order!) we should use a stack and
+either push new element to the stack in case of Start Token or pop the Token if
+it is corresponding End Token. For Example: if stack := `([{` (rightmost is
+last), then if next char is `}`, then we pop and stack = `([`, else: push ->
+stack (for example `)`), then stack = `([{)`.
+
+Simply adapting our problem to Start and End as well as verifying `name` is the
+same will result in us being able to solve this problem.
+
+### Build AST
+
+#TODO: finish this section
+

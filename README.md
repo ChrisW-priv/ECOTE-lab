@@ -163,7 +163,12 @@ class files. Each stage of the pipeline plays a specific role:
   }
   ```
   
-  becomes:
+
+---
+
+## **5. Intermediate Code Generator**
+
+
   ```json
   {
       "element_name": "root",
@@ -199,11 +204,7 @@ class files. Each stage of the pipeline plays a specific role:
   }
   ```
 
----
-
-## **5. Intermediate Code Generator**
-
-
+  becomes:
   ```json
   {
       "types": [
