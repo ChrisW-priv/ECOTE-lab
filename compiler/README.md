@@ -340,3 +340,29 @@ intended rules. Proposed Tree:
 }
 ```
 
+## Intermediate code generation
+
+Now that we have full information on the fact that the AST is indeed correct,
+as well as some types of nodes and roles etc. we can proceed to building the 
+code. Again, building the code right away is hard, so we will first generate 
+some intermediate result, that will be trivial to turn into actual code.
+
+On this step, we will: 
+
+- Identify unique classes and it's types
+- Identify all declarations and it's dependencies (references to other
+  declaration, that we need to build first and use to build current instance)
+  (possibly also save it topological order)
+
+
+## Code Generation 
+
+When we have the code prepared to be generated, we shall now use it using some
+templates. We will not yet save those templates to the filesystem, but instead,
+generate a map of filename to file content. This way it will be easier to test 
+or change the configuration later.
+
+## Code Write
+
+Finally, when we have all the code, we inspect the configuration and save the 
+files to the filesystem.
