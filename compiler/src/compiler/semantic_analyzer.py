@@ -10,9 +10,9 @@ def verify_and_build_typed_ast(element: XmlElement, parent_type: str | None = No
 
     # Determine the role of the current element
     if parent_type == 'variable':
-        identified_role = 'attribute_of_parent'
-    elif parent_type == 'declaration':
         identified_role = 'value_of_an_attribute'
+    elif parent_type == 'declaration':
+        identified_role = 'attribute_of_parent'
     else:
         identified_role = None
 
