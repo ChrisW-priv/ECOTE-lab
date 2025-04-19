@@ -11,8 +11,10 @@ def verify_and_build_typed_ast(
         identified_type = 'declaration'
 
     # Determine the role of the current element
-    if parent_type == 'variable' and parent_role is not None:
+    if identified_type == 'declaration' and parent_role != 'root':
         identified_role = 'value_of_an_attribute'
+    elif identified_type == 'variable' and parent_type is None:
+        identified_role = 'root'
     elif parent_type == 'declaration':
         identified_role = 'attribute_of_parent'
     else:

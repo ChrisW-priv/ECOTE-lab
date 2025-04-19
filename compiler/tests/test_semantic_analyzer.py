@@ -37,7 +37,7 @@ from compiler.errors import SemanticError
             TypedXmlElement(
                 element_name='root',
                 identified_type='variable',
-                identified_role=None,
+                identified_role='root',
                 attributes=None,
                 children=[
                     TypedXmlElement(
@@ -76,7 +76,7 @@ from compiler.errors import SemanticError
             TypedXmlElement(
                 element_name='root',
                 identified_type='variable',
-                identified_role=None,
+                identified_role='root',
                 attributes=None,
                 children=None,
             ),
@@ -98,7 +98,7 @@ from compiler.errors import SemanticError
             TypedXmlElement(
                 element_name='root',
                 identified_type='variable',
-                identified_role=None,
+                identified_role='root',
                 attributes=None,
                 children=[
                     TypedXmlElement(
