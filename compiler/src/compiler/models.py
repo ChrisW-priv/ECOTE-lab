@@ -78,16 +78,6 @@ class ClassAttribute:
 
 
 @dataclass
-class TypedXmlElement:
-    element_name: str
-    identified_type: str
-    identified_role: str | None
-    attributes: list[ElementAttribute] | None = None
-    full_attributes: list[ClassAttribute] | None = None
-    children: list['TypedXmlElement'] | None = None
-
-
-@dataclass
 class InstanceAttribute:
     """
     Represents an Attribute of an instance in the C# code
@@ -124,3 +114,14 @@ class Class:
 class IntermediateCode:
     types: list[Class]
     declarations: list[Declaration]
+
+
+@dataclass
+class TypedXmlElement:
+    element_name: str
+    identified_type: str
+    identified_role: str | None
+    attributes: list[ElementAttribute] | None = None
+    full_attributes: list[ClassAttribute] | None = None
+    children: list['TypedXmlElement'] | None = None
+    identified_class: Class | None = None

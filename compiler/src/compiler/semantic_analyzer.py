@@ -52,6 +52,14 @@ def verify_and_build_typed_ast(
     )
 
 
+def resolve_types(typed_ast: TypedXmlElement) -> TypedXmlElement:
+    """
+    Should add any type to generic "declaration" type and return types of the
+    declarations.
+    """
+    return typed_ast
+
+
 def semantic_analyzer(ast: XmlElement) -> TypedXmlElement:
     """
     Perform an analysis on the tree for correctness of all the rules and builds
@@ -61,4 +69,6 @@ def semantic_analyzer(ast: XmlElement) -> TypedXmlElement:
     if ast.element_name != 'root':
         raise SemanticError('The tree must start with a root node.')
 
-    return verify_and_build_typed_ast(ast)
+    semi_typed_ast = verify_and_build_typed_ast(ast)
+    typed_ast = resolve_types(semi_typed_ast)
+    return typed_ast

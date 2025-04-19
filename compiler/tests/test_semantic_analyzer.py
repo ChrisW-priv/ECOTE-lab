@@ -1,5 +1,5 @@
 import pytest
-from compiler.semantic_analyzer import semantic_analyzer
+from compiler.semantic_analyzer import semantic_analyzer, verify_and_build_typed_ast
 from compiler.models import (
     ClassAttribute,
     XmlElement,
@@ -332,7 +332,7 @@ def test_semantic_analyzer_success(input_ast, expected_typed_ast):
     """
     Test the semantic_analyzer with valid XmlElement trees.
     """
-    result = semantic_analyzer(input_ast)
+    result = verify_and_build_typed_ast(input_ast)
     assert result == expected_typed_ast
 
 
