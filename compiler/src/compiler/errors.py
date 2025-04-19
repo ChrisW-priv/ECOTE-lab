@@ -20,3 +20,9 @@ class QuoteFollowedByNonWhitespaceError(Exception):
     """Raised when a quote is followed by a non-whitespace character."""
 
     pass
+
+
+class SemanticError(Exception):
+    """Raised when there has been identified error in the semantic meaning of XML elements"""
+
+    pass

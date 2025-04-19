@@ -91,18 +91,40 @@ class files. Each stage of the pipeline plays a specific role:
     XmlToken(kind=endTag, name=kitten)
     XmlToken(kind=endTag, name=root)
   ```
-
-  OR
-  ```xml 
-  <root>
-    <kitten Name="Whiskers"/>
-  </root>
-  ```
-  becomes:
-  ```text 
-  ElementStart(name=root)
-      ElementStart(name=kitten, attributes=[Attribute("Name", "Whiskers"))
-  ElementEnd(name=root)
+  and then:
+  ```json
+  {
+      "element_name": "root",
+      "children": [
+          {
+              "element_name": "kitten",
+              "attributes": [
+                  {
+                      "name": "Name",
+                      "value": "Whiskers"
+                  },
+              ],
+              "children": [
+                  {
+                      "element_name": "parent",
+                      "attributes": [],
+                      "children": [
+                          {
+                              "element_name": "cat",
+                              "attributes": [
+                                  {
+                                      "name": "Name",
+                                      "value": "The Garfield"
+                                  },
+                              ],
+                              "children": [ ]
+                          }
+                      ]
+                  }
+              ]
+          }
+      ]
+  }
   ```
 
 ---
@@ -116,147 +138,13 @@ class files. Each stage of the pipeline plays a specific role:
 - **Transformations**:
   - Identifies classes, lists, instances
   - Assigns types to each element
-- **Example**:
-
-  ```json
-  ElementStart(name=root)
-      ElementStart(name=kitten, attributes=[Attribute("Name", "Whiskers"))
-          ElementStart(name=parent)
-              ElementStart(name=cat, attributes=[Attribute("Name", "The Garfield"))
-          ElementEnd(name=parent)
-      ElementEnd(name=kitten)
-  ElementEnd(name=root)
-  ```
-  becomes:
-  ```json
-  {
-      "element_name": "root",
-      "children": [
-          {
-              "element_name": "kitten",
-              "attributes": [
-                  {
-                      "name": "Name",
-                      "value": "Whiskers"
-                  },
-              ],
-              "children": [
-                  {
-                      "element_name": "parent",
-                      "attributes": [],
-                      "children": [
-                          {
-                              "element_name": "cat",
-                              "attributes": [
-                                  {
-                                      "name": "Name",
-                                      "value": "The Garfield"
-                                  },
-                              ],
-                              "children": [ ]
-                          }
-                      ]
-                  }
-              ]
-          }
-      ]
-  }
-  ```
   
 
 ---
 
 ## **5. Intermediate Code Generator**
 
-
-  ```json
-  {
-      "element_name": "root",
-      "children": [
-          {
-              "element_name": "kitten",
-              "attributes": [
-                  {
-                      "name": "Name",
-                      "value": "Whiskers"
-                  },
-              ],
-              "children": [
-                  {
-                      "element_name": "parent",
-                      "attributes": [],
-                      "children": [
-                          {
-                              "element_name": "cat",
-                              "attributes": [
-                                  {
-                                      "name": "Name",
-                                      "value": "The Garfield"
-                                  },
-                              ],
-                              "children": [ ]
-                          }
-                      ]
-                  }
-              ]
-          }
-      ]
-  }
-  ```
-
-  becomes:
-  ```json
-  {
-      "types": [
-          {
-              "name": "Class1",
-              "attributes": [
-                  {
-                      "name": "Name",
-                      "attribute_type": "string"
-                  },
-                  {
-                      "name": "Parent",
-                      "attribute_type": "Class1"
-                  }
-              ]
-          }
-      ],
-      "declarations": [
-          {
-              "id": "0001",
-              "instance_name": "cat",
-              "class_name": "Class1",
-              "attributes": [
-                   {
-                       "name": "Name",
-                       "value": "The Garfield"
-                   },
-                   {
-                       "name": "Parent",
-                       "value": null
-                   }
-              ]
-          },
-          {
-              "id": "0002",
-              "instance_name": "kitten",
-              "class_name": "Class1",
-              "attributes": [
-                   {
-                       "name": "Name",
-                       "value": "Whiskers"
-                   },
-                   {
-                       "name": "Parent",
-                       "value": null,
-                       "ref": "kitten-001"
-                   }
-              ]
-          }
-      ]
-  }
-  ```
+...
 
 ---
 
@@ -265,6 +153,8 @@ class files. Each stage of the pipeline plays a specific role:
 - **Goal**: Generate C# code representations.
 - **Output**: Map of `filename` to an expected content of that file
 
+...
+
 ---
 
 ## **7. Writer**
@@ -272,4 +162,6 @@ class files. Each stage of the pipeline plays a specific role:
 - **Goal**: Write generated code to disk.
 - **Output**: None -> this step saves files to disk 
 - **Location**: All files saved in `./output/` directory.
+
+...
 

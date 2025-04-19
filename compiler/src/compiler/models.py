@@ -71,7 +71,7 @@ class XmlElement:
 class TypedXmlElement:
     element_name: str
     identified_type: str
-    identified_role: str
+    identified_role: str | None
     attributes: list[ElementAttribute] | None = None
     children: list['TypedXmlElement'] | None = None
 
