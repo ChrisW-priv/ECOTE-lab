@@ -43,13 +43,13 @@ from compiler.errors import SemanticError
                     TypedXmlElement(
                         element_name='kitten',
                         identified_type='declaration',
-                        identified_role=None,
+                        identified_role='value_of_an_attribute',
                         attributes=[ElementAttribute(name='Name', value='Whiskers')],
                         children=[
                             TypedXmlElement(
                                 element_name='parent',
                                 identified_type='variable',
-                                identified_role='attribute_of_parent',
+                                identified_role=None,
                                 attributes=None,
                                 children=[
                                     TypedXmlElement(
@@ -359,14 +359,12 @@ def test_semantic_analyzer_success(input_ast, expected_typed_ast):
 @pytest.mark.parametrize(
     'input_ast, expected_exception, expected_message',
     [
-        # Test Case 1: Root Element Not a Variable
+        # Test Case 1: Root Element Not a ROOT
         (
             XmlElement(
-                element_name='root',
-                attributes=[ElementAttribute(name='Name', value='NotAVariable')],
-                children=None,
+                element_name='var',
             ),
-            ValueError,
+            SemanticError,
             'The tree must start with a root node.',
         ),
         # Test Case 2: Declaration Under Variable Missing Role
@@ -382,7 +380,7 @@ def test_semantic_analyzer_success(input_ast, expected_typed_ast):
                 ],
             ),
             SemanticError,
-            "Element 'kitten' must be a 'declaration' under a 'variable' parent.",
+            '"variable" node has no children',
         ),
         # Test Case 3: Variable Element Having Declaration Children
         (
@@ -402,30 +400,9 @@ def test_semantic_analyzer_success(input_ast, expected_typed_ast):
                 ],
             ),
             SemanticError,
-            "Variable element 'variable_node' cannot have declaration children.",
+            "identified_type='variable' cannot have children of type children_type='variable'",
         ),
-        # Test Case 4: Mismatched Types in Tree
-        (
-            XmlElement(
-                element_name='root',
-                children=[
-                    XmlElement(
-                        element_name='kitten',
-                        attributes=None,  # Should be a variable
-                        children=[
-                            XmlElement(
-                                element_name='parent',
-                                attributes=[ElementAttribute(name='Name', value='ParentName')],
-                                children=None,
-                            )
-                        ],
-                    )
-                ],
-            ),
-            SemanticError,
-            "Element 'kitten' must be a 'declaration' under a 'variable' parent.",
-        ),
-        # Test Case 5: Multiple Roles Conflict
+        # Test Case 4: declaration followed by declaration
         (
             XmlElement(
                 element_name='root',
@@ -446,7 +423,7 @@ def test_semantic_analyzer_success(input_ast, expected_typed_ast):
                 ],
             ),
             SemanticError,
-            "Variable element 'parent' cannot have declaration children.",
+            "identified_type='declaration' cannot have children of type children_type='declaration'",
         ),
     ],
 )

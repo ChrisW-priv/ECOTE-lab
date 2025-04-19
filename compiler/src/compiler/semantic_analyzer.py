@@ -8,9 +8,6 @@ def verify_and_build_typed_ast(element: XmlElement, parent_type: str | None = No
     if element.attributes:
         identified_type = 'declaration'
 
-    if identified_type == parent_type:
-        raise SemanticError(f'{parent_type=} cannot have child of {identified_type=}')
-
     # Determine the role of the current element
     if parent_type == 'variable':
         identified_role = 'attribute_of_parent'
@@ -23,7 +20,13 @@ def verify_and_build_typed_ast(element: XmlElement, parent_type: str | None = No
     children = [verify_and_build_typed_ast(child, identified_type) for child in (element.children or [])]
 
     types = set(child.identified_type for child in children)
-    if len(types) != 1:
+    if len(types) == 0 and identified_type == 'variable' and element.element_name != 'root':
+        raise SemanticError('"variable" node has no children')
+    if len(types) == 1:
+        children_type = next(iter(types))
+        if identified_type == children_type:
+            raise SemanticError(f'{identified_type=} cannot have children of type {children_type=}')
+    if len(types) > 1:
         raise SemanticError(f'{identified_type=} has mixed children {types=}')
 
     return TypedXmlElement(
