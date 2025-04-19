@@ -84,7 +84,7 @@ from compiler.errors import InvalidTransitionError
         ),
     ],
 )
-def test_parser(base_tokens, expected_xml_tokens):
+def test_parser_inter_tokens(base_tokens, expected_xml_tokens):
     tokens = list(build_xml_tokens(base_tokens))
     assert tokens == expected_xml_tokens
 
@@ -211,7 +211,7 @@ def create_element():
         ),
     ],
 )
-def test_semantic_analyser_success(tokens, expected):
+def test_parser_success(tokens, expected):
     """
     Test the semantic_analyser with valid token sequences.
     """
@@ -264,7 +264,7 @@ def test_semantic_analyser_success(tokens, expected):
         ),
     ],
 )
-def test_semantic_analyser_failure(tokens, expected_exception, exception_message):
+def test_parser_failure(tokens, expected_exception, exception_message):
     """
     Test the semantic_analyser with invalid token sequences expecting failures.
     """
