@@ -2,14 +2,16 @@ from compiler.models import TypedXmlElement, XmlElement
 from compiler.errors import SemanticError
 
 
-def verify_and_build_typed_ast(element: XmlElement, parent_type: str | None = None) -> TypedXmlElement:
+def verify_and_build_typed_ast(
+    element: XmlElement, parent_type: str | None = None, parent_role: str | None = None
+) -> TypedXmlElement:
     # Determine the type of the current element
     identified_type = 'variable'
     if element.attributes:
         identified_type = 'declaration'
 
     # Determine the role of the current element
-    if parent_type == 'variable':
+    if parent_type == 'variable' and parent_role is not None:
         identified_role = 'value_of_an_attribute'
     elif parent_type == 'declaration':
         identified_role = 'attribute_of_parent'
@@ -17,7 +19,9 @@ def verify_and_build_typed_ast(element: XmlElement, parent_type: str | None = No
         identified_role = None
 
     # Recursively process children
-    children = [verify_and_build_typed_ast(child, identified_type) for child in (element.children or [])]
+    children = [
+        verify_and_build_typed_ast(child, identified_type, identified_role) for child in (element.children or [])
+    ]
 
     types = set(child.identified_type for child in children)
     if len(types) == 0 and identified_type == 'variable' and element.element_name != 'root':
