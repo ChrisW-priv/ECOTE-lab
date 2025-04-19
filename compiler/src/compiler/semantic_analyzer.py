@@ -1,4 +1,4 @@
-from compiler.models import TypedXmlElement, XmlElement
+from compiler.models import ClassAttribute, TypedXmlElement, XmlElement
 from compiler.errors import SemanticError
 
 
@@ -14,6 +14,7 @@ def verify_and_build_typed_ast(
     if identified_type == 'declaration' and parent_role != 'root':
         identified_role = 'value_of_an_attribute'
     elif identified_type == 'variable' and parent_type is None:
+        identified_type = 'root'
         identified_role = 'root'
     elif parent_type == 'declaration':
         identified_role = 'attribute_of_parent'
@@ -32,14 +33,21 @@ def verify_and_build_typed_ast(
         children_type = next(iter(types))
         if identified_type == children_type:
             raise SemanticError(f'{identified_type=} cannot have children of type {children_type=}')
-    if len(types) > 1:
+    if len(types) > 1 and identified_role != 'root':
         raise SemanticError(f'{identified_type=} has mixed children {types=}')
+
+    full_attributes = list(ClassAttribute(attribute.name, 'string') for attribute in element.attributes or [])
+    children_names = []
+    if identified_type == 'declaration' and element.children:
+        children_names = list(ClassAttribute(child.element_name, 'declaration') for child in children)
+    full_attributes = (full_attributes + children_names) or None
 
     return TypedXmlElement(
         element_name=element.element_name,
         identified_type=identified_type,
         identified_role=identified_role,
         attributes=element.attributes,
+        full_attributes=full_attributes,
         children=children if children else None,
     )
 

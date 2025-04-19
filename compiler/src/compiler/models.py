@@ -68,15 +68,6 @@ class XmlElement:
 
 
 @dataclass
-class TypedXmlElement:
-    element_name: str
-    identified_type: str
-    identified_role: str | None
-    attributes: list[ElementAttribute] | None = None
-    children: list['TypedXmlElement'] | None = None
-
-
-@dataclass
 class ClassAttribute:
     """
     Represents an Attribute of a C# Class
@@ -84,6 +75,16 @@ class ClassAttribute:
 
     name: str
     attribute_type: str
+
+
+@dataclass
+class TypedXmlElement:
+    element_name: str
+    identified_type: str
+    identified_role: str | None
+    attributes: list[ElementAttribute] | None = None
+    full_attributes: list[ClassAttribute] | None = None
+    children: list['TypedXmlElement'] | None = None
 
 
 @dataclass
