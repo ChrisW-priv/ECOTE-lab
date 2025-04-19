@@ -48,21 +48,36 @@ returns all unique characters across all strings combined
 
 ## Parser State Transition
 
-Now that we have our TOKENS defined, it is time to define the transitions on those tokens.
-In my mind, it is way easier to first strongly define our grammar using the regular expressions.
+Role of the Parser is to turn Tokens into AST. but in my implementation, 
+scanner yields tokens that are really atomic. Thus, it makes sense to implement
+parser as two stage:
+
+1. Turn atomic tokens into larger, xml tokens 
+2. Turn xml tokens into AST
+
+Additional benefit is that the error handling becomes a lot easier just because
+we focus on one task at a time.
+
+### Build xml tokens
+
+Now that we have our TOKENS defined, it is time to define the transitions on
+those tokens. In my mind, it is way easier to first strongly define our grammar
+using the regular expressions.
+
 We will start by defining ATTRIBUTE pattern:
 
 - `ATTRIBUTE` := TEXT(*) SYMBOL(=) STRING(*)
 
-and now, we can use it to define ELEMENT pattern. But there is more than one! So we will start with a basics:
+and now, we can use it to define ELEMENT pattern. But there is more than one!
+So we will start with a basics:
 
-- `ELEMENT_START` := SYMBOL(<) TEXT(*) ATTRIBUTE* SYMBOL(>)
-- `ELEMENT_END` := SYMBOL(<) TEXT(*) SYMBOL(>)
+- `StartToken` := SYMBOL(<) TEXT(*) ATTRIBUTE* SYMBOL(>)
+- `EndToken` := SYMBOL(<) TEXT(*) SYMBOL(>)
 
 and now, let us define the ELEMENT:
 
-- ELEMENT := ELEMENT_START ELEMENT* ELEMENT_END      # This will be parsed in Semantic Analysis (later) stage!
-- ELEMENT := SYMBOL(<) TEXT(*) ATTRIBUTE* SYMBOL(/>) # This is SelfClosingToken
+- ELEMENT := ELEMENT_START ELEMENT* ELEMENT_END  # This we will build in AST build phase
+- ELEMENT := SYMBOL(<) TEXT(*) ATTRIBUTE* SYMBOL(/>)  # This is SelfClosingToken
 
 Let us now define some states:
 
@@ -113,7 +128,7 @@ ELEMENT_END_VERIFY:
 - on SYMBOL(>): yield current EndToken, GOTO IN_DOCUMENT
 - else: raise error. There can be no other structure in closing element than 
 
-## Semantic Analysis
+### Build AST
 
 From the previous step we have an Iterable of XmlTokens.
 Now, it makes sense to both:
@@ -172,7 +187,7 @@ Should become (skiping scanner + parser stages):
 
 This way, we will get easy to parse XmlElements.
 
-### Verify the correctness
+#### Verify the correctness
 
 From the nature of the Tokens (Start/End) this is actually a classical CS
 problem. This example is usually in the form: "Having symbols `()[]{}` make
@@ -191,7 +206,7 @@ stack (for example `)`), then stack = `([{)`.
 Simply adapting our problem to Start and End as well as verifying `name` is the
 same will result in us being able to solve this problem.
 
-### Build AST
+#### Algorithm
 
 While we could verify the XmlTokens Iterable and then generate AST using some
 hacked solutions, we can also adapt the algorithm to build AST in a single pass
@@ -205,7 +220,123 @@ hacked solutions, we can also adapt the algorithm to build AST in a single pass
     1. if stack.top.name != next_token.name: raise error: mismatching Tokens
     2. else: Build XmlElement and set it's children to inter_list; inter_list = []
 
+## Semantic Analyzer
 
-## Intermediate Code Generation
+Now that we have created an AST of the XML_Elements, it is time to verify if 
+the tree follows rules defined for us:
 
+- Tree starts with root node
+- Tree nodes are either "variable" nodes or "declaration" nodes
+- immediate child of the "variable" node has to be at least one "declaration"
+  node (except for root). Note: while in principle, we COULD have a chain of 
+  "variable" nodes, that would creation of a "List of lists" structure which we
+  disallow in the assumptions. Note: All nodes except for root follow this 
+  rule. In case of root, if there is "variable" node, then it is a list.
+- immediate child of the "declaration" node has to be "variable" node 
+  (0 or more)
+
+Example:
+```xml 
+<root>  # Starts with root
+    <kitten Name="Whiskers">  # This node has attributes -> "declaration" node
+        <Parents>  # This node has no attributes -> "variable" node
+            <cat Name="The Garfield"/>  # This node has attributes -> "declaration"
+        </Parents>
+        <BestFriend>  # This node has no attributes -> "variable" node
+            <scout Name="Scout"/>  # This node has attributes -> "declaration"
+        </BestFriend>
+    </kitten>
+    <ppl>  # This node has no attributes -> "variable" node (list) (lenght=1)
+        <john Name="John"/>  # This node has attributes -> "declaration"
+    </ppl>
+    <cars>  # This node has no attributes -> "variable" node (list) (lenght=2)
+        <car1 Name="Lightning"/>  # This node has attributes -> "declaration"
+        <car2 Name="Sally"/>  # This node has attributes -> "declaration"
+    </cars>
+    <newman Name="Joseph"/>  # This node has attributes -> "declaration"
+    <paul Name="Paul Atreides">  # This node has attributes -> "declaration" node
+        <Parents>  # This node has no attributes -> "variable" node. NOTICE: THIS IS A LIST NOW!!!
+            <pauls_father Name="Duke Leto Atreides I"/>  # This node has attributes -> "declaration"
+            <pauls_mother Name="Lady Jessica"/>  # This node has attributes -> "declaration"
+        </Parents>
+    </kitten>
+</root>
+```
+
+Notice: this example explores some tricky edge cases:
+
+- "parents" attribute has a type of `List<Class1>`, even though, we learn about 
+  this only at the very end
+- All "variable" nodes attribute are `List<Class1>`, even if they have just one 
+  element.
+- "declaration" nodes are just instances of the class, nothing too strange
+
+Then, since we are already here, and we did the analysis work once, we can 
+create new "Typed AST" that will be easier to parse and be guaranteed to follow
+intended rules. Proposed Tree:
+
+```json
+{
+    "element_name": "root",
+    "identified_type": "variable",
+    "identified_role": null,
+    "children": [
+        {
+            "element_name": "kitten",
+            "identified_type": "declaration",
+            "identified_role": null,
+            "attributes": [
+                {
+                    "name": "Name",
+                    "value": "Whiskers",
+                    "": "Whiskers",
+                },
+            ],
+            "children": [
+                {
+                    "element_name": "Parents",
+                    "identified_type": "variable",
+                    "identified_role": "attribute_of_parent",
+                    "attributes": null,
+                    "children": [
+                        {
+                            "element_name": "cat",
+                            "identified_type": "declaration",
+                            "identified_role": "value_of_an_attribute",
+                            "attributes": [
+                                {
+                                    "name": "Name",
+                                    "value": "The Garfield"
+                                },
+                            ],
+                            "children": null
+                        }
+                    ]
+                },
+                {
+                    "element_name": "BestFriend",
+                    "identified_type": "variable",
+                    "identified_role": "attribute_of_parent",
+                    "attributes": null,
+                    "children": [
+                        {
+                            "element_name": "scout",
+                            "identified_type": "declaration",
+                            "identified_role": "value_of_an_attribute",
+                            "attributes": [
+                                {
+                                    "name": "Name",
+                                    "value": "Scout"
+                                },
+                            ],
+                            "children": null
+                        }
+                    ]
+                }
+            ]
+        },
+        ...
+    ]
+}
+```
 

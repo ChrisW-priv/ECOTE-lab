@@ -70,6 +70,7 @@ class XmlElement:
 @dataclass
 class TypedXmlElement:
     element_name: str
+    identified_type: str
     identified_role: str
     attributes: list[ElementAttribute] | None = None
     children: list['TypedXmlElement'] | None = None
