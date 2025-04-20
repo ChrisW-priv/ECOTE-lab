@@ -67,7 +67,7 @@ class XmlElement:
     children: list['XmlElement'] | None = None
 
 
-@dataclass
+@dataclass(slots=True, frozen=True)
 class ClassAttribute:
     """
     Represents an Attribute of a C# Class

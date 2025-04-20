@@ -32,7 +32,16 @@ class SemanticAnalyzer:
             input: [{'a', 'b'}, {'a', 'b'}]
             output: [{'a', 'b'}]
         """
-        # TODO: implement this
+        minimized = set(frozenset(s) for s in self.identified_types)
+        to_remove = set()
+
+        for s1 in minimized:
+            for s2 in minimized:
+                if s1 != s2 and s1.issubset(s2):
+                    to_remove.add(s1)
+                    break
+
+        self.identified_types = [set(s) for s in minimized if s not in to_remove]
 
     def verify_and_build_typed_ast(
         self, element: XmlElement, parent_role: str | None = None, strict: bool = False
@@ -67,6 +76,12 @@ class SemanticAnalyzer:
                 identified_role = 'attribute'
 
         if not element.children:  # leaf nodes
+            if identified_role == 'root':
+                return TypedXmlElement(
+                    element_name=element.element_name,
+                    identified_type=-1,
+                    identified_role=identified_role,
+                )
             attrs = element.attributes
             if not attrs:
                 raise SemanticError('leaf node has to be a declaration node (must have attributes)')
@@ -108,6 +123,13 @@ class SemanticAnalyzer:
                 identified_type=children[0].identified_type,
                 identified_role=identified_role,
                 is_list=is_list,
+            )
+        if identified_role == 'root':
+            return TypedXmlElement(
+                element_name=element.element_name,
+                identified_type=-1,
+                identified_role=identified_role,
+                children=children,
             )
 
         attrs = list(ClassAttribute(attribute.name, 'string') for attribute in element.attributes or [])
