@@ -2,73 +2,134 @@ from compiler.models import ClassAttribute, TypedXmlElement, XmlElement
 from compiler.errors import SemanticError
 
 
-def verify_and_build_typed_ast(
-    element: XmlElement, parent_type: str | None = None, parent_role: str | None = None
-) -> TypedXmlElement:
-    # Determine the type of the current element
-    identified_type = 'variable'
-    if element.attributes:
-        identified_type = 'declaration'
+class SemanticAnalyzer:
+    def __init__(self, root_element: XmlElement) -> None:
+        assert root_element.element_name == 'root', 'The tree must start with a root node.'
+        self.identified_types: list[set[ClassAttribute]] = []
+        self.root = root_element
 
-    # Determine the role of the current element
-    if identified_type == 'declaration' and parent_role != 'root':
-        identified_role = 'value_of_an_attribute'
-    elif identified_type == 'variable' and parent_type is None:
-        identified_type = 'root'
-        identified_role = 'root'
-    elif parent_type == 'declaration':
-        identified_role = 'attribute_of_parent'
-    else:
-        identified_role = None
+    def analyze(self):
+        """
+        Perform an analysis on the tree for correctness of all the rules and builds
+        a TypedTree, to signify the purpose of each element.
+        """
+        self.verify_and_build_typed_ast(self.root)
+        self.minimize_types()
+        typed_ast = self.verify_and_build_typed_ast(self.root, strict=True)
+        return typed_ast
 
-    # Recursively process children
-    children = [
-        verify_and_build_typed_ast(child, identified_type, identified_role) for child in (element.children or [])
-    ]
+    def minimize_types(self):
+        """
+        Given a list of sets, produce smaller list of sets that will contain all subsets in that list
 
-    types = set(child.identified_type for child in children)
-    if len(types) == 0 and identified_type == 'variable' and element.element_name != 'root':
-        raise SemanticError('"variable" node has no children')
-    if len(types) == 1:
-        children_type = next(iter(types))
-        if identified_type == children_type:
-            raise SemanticError(f'{identified_type=} cannot have children of type {children_type=}')
-    if len(types) > 1 and identified_role != 'root':
-        raise SemanticError(f'{identified_type=} has mixed children {types=}')
+        Examples:
+            input: [{'a'}, {'b'}]
+            output: [{'a'}, {'b'}]
 
-    full_attributes = list(ClassAttribute(attribute.name, 'string') for attribute in element.attributes or [])
-    children_names = []
-    if identified_type == 'declaration' and element.children:
-        children_names = list(ClassAttribute(child.element_name, 'declaration') for child in children)
-    full_attributes = (full_attributes + children_names) or None
+            input: [{'a'}, {'b'}, {'a', 'b'}]
+            output: [{'a', 'b'}]
 
-    return TypedXmlElement(
-        element_name=element.element_name,
-        identified_type=identified_type,
-        identified_role=identified_role,
-        attributes=element.attributes,
-        full_attributes=full_attributes,
-        children=children if children else None,
-    )
+            input: [{'a', 'b'}, {'a', 'b'}]
+            output: [{'a', 'b'}]
+        """
+        # TODO: implement this
 
+    def verify_and_build_typed_ast(
+        self, element: XmlElement, parent_role: str | None = None, strict: bool = False
+    ) -> TypedXmlElement:
+        """
+        Recursively go through the tree and identify the role of each element,
+        and do type analysis based on the available attributes of each element
+        """
 
-def resolve_types(typed_ast: TypedXmlElement) -> TypedXmlElement:
-    """
-    Should add any type to generic "declaration" type and return types of the
-    declarations.
-    """
-    return typed_ast
+        """ 
+        The type of the current element: if has attributes then it
+        is a declaration, else it is a variable, unless this is a child of
+        declaration, then it is an attribute.
 
+        There can also be a situation when we begin the analysis, and the
+        parent_role is None, in which case it makes sense to identify it as
+        root node.
+        """
+        if parent_role is None:
+            identified_role = 'root'
+        elif element.attributes:
+            identified_role = 'declaration'
+            if parent_role == 'declaration':
+                raise SemanticError(
+                    'declaration node cannot be followed by another declaration node without variable node in between'
+                )
+        else:
+            identified_role = 'variable'
+            if parent_role in ('variable', 'attribute'):
+                raise SemanticError(f'node with {parent_role=} was followed by node with no attributes!')
+            if parent_role == 'declaration':
+                identified_role = 'attribute'
 
-def semantic_analyzer(ast: XmlElement) -> TypedXmlElement:
-    """
-    Perform an analysis on the tree for correctness of all the rules and builds
-    a TypedTree, to signify the purpose of each element.
-    """
-    # Start the verification and building process
-    if ast.element_name != 'root':
-        raise SemanticError('The tree must start with a root node.')
+        if not element.children:  # leaf nodes
+            attrs = element.attributes
+            if not attrs:
+                raise SemanticError('leaf node has to be a declaration node (must have attributes)')
+            class_attrs = [ClassAttribute(attr.name, 'string') for attr in attrs]
+            unique_class_attrs = set(class_attrs)
+            if len(class_attrs) != len(unique_class_attrs):
+                raise SemanticError('multiple declarations of one attribute in a single node')
 
-    semi_typed_ast = verify_and_build_typed_ast(ast)
-    typed_ast = resolve_types(semi_typed_ast)
-    return typed_ast
+            for i, glob_identified_type in enumerate(self.identified_types):
+                if unique_class_attrs.issubset(glob_identified_type):
+                    identified_type = i
+                    break
+                elif glob_identified_type.issubset(unique_class_attrs):
+                    identified_type = i
+                    glob_identified_type = unique_class_attrs
+                    break
+            else:
+                self.identified_types.append(unique_class_attrs)
+                identified_type = len(self.identified_types) - 1
+
+            return TypedXmlElement(
+                element_name=element.element_name,
+                identified_type=identified_type,
+                identified_role=identified_role,
+            )
+
+        children = [self.verify_and_build_typed_ast(child, identified_role, strict) for child in element.children]
+        if identified_role in ('variable', 'attribute'):
+            is_list = False
+            if len(children) > 1 or parent_role == 'root':
+                is_list = True
+
+            types = set(child.identified_type for child in children)
+            if is_list and strict and len(types) > 1:
+                raise SemanticError('There are multible different types in the list that is here!')
+
+            return TypedXmlElement(
+                element_name=element.element_name,
+                identified_type=children[0].identified_type,
+                identified_role=identified_role,
+                is_list=is_list,
+            )
+
+        attrs = list(ClassAttribute(attribute.name, 'string') for attribute in element.attributes or [])
+        children_types = list(ClassAttribute(child.element_name, str(child.identified_type)) for child in children)
+        class_attrs = attrs + children_types
+        unique_class_attrs = set(class_attrs)
+        if len(class_attrs) != len(unique_class_attrs):
+            raise SemanticError('multiple declarations of one attribute in a single node')
+        for i, glob_identified_type in enumerate(self.identified_types):
+            if unique_class_attrs.issubset(glob_identified_type):
+                identified_type = i
+                break
+            elif glob_identified_type.issubset(unique_class_attrs):
+                identified_type = i
+                glob_identified_type = unique_class_attrs
+                break
+        else:
+            self.identified_types.append(unique_class_attrs)
+            identified_type = len(self.identified_types) - 1
+
+        return TypedXmlElement(
+            element_name=element.element_name,
+            identified_type=identified_type,
+            identified_role=identified_role,
+        )

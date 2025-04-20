@@ -119,9 +119,8 @@ class IntermediateCode:
 @dataclass
 class TypedXmlElement:
     element_name: str
-    identified_type: str
+    identified_type: int
     identified_role: str | None
-    attributes: list[ElementAttribute] | None = None
-    full_attributes: list[ClassAttribute] | None = None
     children: list['TypedXmlElement'] | None = None
     identified_class: Class | None = None
+    is_list: bool = False
