@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from compiler.models import ClassAttribute, TypedXmlElement, XmlElement
 from compiler.errors import SemanticError
 
@@ -155,3 +156,23 @@ class SemanticAnalyzer:
             identified_type=identified_type,
             identified_role=identified_role,
         )
+
+
+@dataclass
+class SemanticAnalyzerOutput:
+    typed_ast: TypedXmlElement
+    types: list[set[ClassAttribute]]
+
+
+def semantic_analyzer(ast: XmlElement) -> SemanticAnalyzerOutput:
+    """
+    Takes in naive input of XmlElement and analyzes it for correctness.
+    In the same time, it generates some Typed AST to make it easy for the later
+    stages to do the work (since we already have done the work once)
+    """
+    semantic_analyzer = SemanticAnalyzer(ast)
+
+    # Perform the semantic analysis
+    typed_ast = semantic_analyzer.analyze()
+    types = semantic_analyzer.identified_types
+    return SemanticAnalyzerOutput(typed_ast, types)
