@@ -44,6 +44,9 @@ class SemanticAnalyzer:
 
         self.identified_types = [set(s) for s in minimized if s not in to_remove]
 
+        # Sort the identified_types to ensure deterministic order. Sort them by attribute.name
+        self.identified_types.sort(key=lambda attrs: tuple(sorted(attr.name for attr in attrs)))
+
     def verify_and_build_typed_ast(
         self, element: XmlElement, parent_role: str | None = None, strict: bool = False
     ) -> TypedXmlElement:
@@ -117,6 +120,8 @@ class SemanticAnalyzer:
 
             if is_list and strict and len(types) > 1:
                 raise SemanticError('There are multiple different types in the list that is here!')
+            if is_list and parent_role == 'declaration':
+                raise SemanticError('Declaration nodes cannot have attributes that are lists.')
 
             return TypedXmlElement(
                 element_name=element.element_name,

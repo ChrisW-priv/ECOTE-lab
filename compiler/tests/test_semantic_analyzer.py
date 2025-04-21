@@ -111,57 +111,7 @@ def test_minimize_types(input_identified_types, expected_minimized_types):
                 identified_role='root',
             ),
         ),
-        # Test Case 3: Nested Elements with Multiple Attributes
-        (
-            XmlElement(
-                element_name='root',
-                attributes=[],
-                children=[
-                    XmlElement(
-                        element_name='book',
-                        attributes=[
-                            ElementAttribute(name='title', value='1984'),
-                            ElementAttribute(name='author', value='George Orwell'),
-                        ],
-                        children=[
-                            XmlElement(
-                                element_name='chapters',
-                                children=[
-                                    XmlElement(
-                                        element_name='chapter1',
-                                        attributes=[ElementAttribute(name='title', value='Chapter 1')],
-                                        children=None,
-                                    ),
-                                    XmlElement(
-                                        element_name='chapter2',
-                                        attributes=[ElementAttribute(name='title', value='Chapter 2')],
-                                        children=None,
-                                    ),
-                                ],
-                            ),
-                        ],
-                    )
-                ],
-            ),
-            TypedXmlElement(
-                element_name='root',
-                identified_type=-1,
-                identified_role='root',
-                children=[
-                    TypedXmlElement(
-                        element_name='book',
-                        identified_type=0,
-                        identified_role='declaration',
-                        children=None,
-                        identified_class=None,
-                        is_list=False,
-                    )
-                ],
-                identified_class=None,
-                is_list=False,
-            ),
-        ),
-        # Test Case 4: Abstract Example Compatible with HTML
+        # Test Case 3: Abstract Example Compatible with HTML
         (
             XmlElement(
                 element_name='root',
@@ -255,6 +205,37 @@ def test_semantic_analyzer_empty_expected(input_xml_element, expected_typed_ast)
                 ],
             ),
             "node with parent_role='variable' was followed by node with no attributes!",
+        ),
+        # New Test Case: Declaration node with an attribute that is a list
+        (
+            XmlElement(
+                element_name='root',
+                attributes=[],
+                children=[
+                    XmlElement(
+                        element_name='declaration_node',
+                        attributes=[ElementAttribute(name='attr', value='value')],
+                        children=[
+                            XmlElement(
+                                element_name='attribute_node',
+                                children=[
+                                    XmlElement(
+                                        element_name='sub_attribute1',
+                                        attributes=[ElementAttribute(name='name1', value='value1')],
+                                        children=None,
+                                    ),
+                                    XmlElement(
+                                        element_name='sub_attribute2',
+                                        attributes=[ElementAttribute(name='name1', value='value2')],
+                                        children=None,
+                                    ),
+                                ],
+                            )
+                        ],
+                    )
+                ],
+            ),
+            'Declaration nodes cannot have attributes that are lists.',
         ),
         # Test Case 3: Leaf node without attributes
         (
@@ -384,42 +365,7 @@ def test_semantic_analyzer_errors(input_xml_element, expected_exception_message)
                 {ClassAttribute('age', 'string')},
             ],
         ),
-        # Test Case 4: Nested declarations with inherited attributes
-        (
-            XmlElement(
-                element_name='root',
-                attributes=[],
-                children=[
-                    XmlElement(
-                        element_name='company',
-                        attributes=[ElementAttribute(name='name', value='OpenAI')],
-                        children=[
-                            XmlElement(
-                                element_name='employees',  # Variable node added here
-                                attributes=[],
-                                children=[
-                                    XmlElement(
-                                        element_name='employee',
-                                        attributes=[ElementAttribute(name='id', value='123')],
-                                        children=None,
-                                    ),
-                                    XmlElement(
-                                        element_name='employee',
-                                        attributes=[ElementAttribute(name='id', value='456')],
-                                        children=None,
-                                    ),
-                                ],
-                            ),
-                        ],
-                    )
-                ],
-            ),
-            [
-                {ClassAttribute('name', 'string'), ClassAttribute('employees', '0')},
-                {ClassAttribute('id', 'string')},
-            ],
-        ),
-        # Test Case 5: No declarations (only root)
+        # Test Case 4: No declarations (only root)
         (
             XmlElement(
                 element_name='root',
