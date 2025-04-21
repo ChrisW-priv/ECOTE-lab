@@ -7,6 +7,7 @@ class SemanticAnalyzer:
     def __init__(self, root_element: XmlElement) -> None:
         assert root_element.element_name == 'root', 'The tree must start with a root node.'
         self.identified_types: list[set[ClassAttribute]] = []
+        self.element_names: list[str] = []
         self.root = root_element
 
     def analyze(self):
@@ -16,6 +17,7 @@ class SemanticAnalyzer:
         """
         self.verify_and_build_typed_ast(self.root)
         self.minimize_types()
+        self.element_names = []
         typed_ast = self.verify_and_build_typed_ast(self.root, strict=True)
         return typed_ast
 
@@ -64,6 +66,9 @@ class SemanticAnalyzer:
         parent_role is None, in which case it makes sense to identify it as
         root node.
         """
+        if element.element_name in self.element_names:
+            raise SemanticError(f'element with name={element.element_name} was already found when parsing the tree')
+        self.element_names.append(element.element_name)
         if parent_role is None:
             identified_role = 'root'
         elif element.attributes:

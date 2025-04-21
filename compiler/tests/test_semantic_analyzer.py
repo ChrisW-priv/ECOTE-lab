@@ -277,7 +277,7 @@ def test_semantic_analyzer_empty_expected(input_xml_element, expected_typed_ast)
                 attributes=[],
                 children=[
                     XmlElement(
-                        element_name='root',
+                        element_name='list',
                         children=[
                             XmlElement(
                                 element_name='list_item1',
@@ -295,6 +295,31 @@ def test_semantic_analyzer_empty_expected(input_xml_element, expected_typed_ast)
             ),
             'There are multiple different types in the list that is here!',
         ),
+        # Test Case 6: multiple items with the same names
+        (
+            XmlElement(
+                element_name='root',
+                attributes=[],
+                children=[
+                    XmlElement(
+                        element_name='list',
+                        children=[
+                            XmlElement(
+                                element_name='list_item',
+                                attributes=[ElementAttribute(name='attr1', value='value1')],
+                                children=None,
+                            ),
+                            XmlElement(
+                                element_name='list_item',
+                                attributes=[ElementAttribute(name='attr2', value='value2')],
+                                children=None,
+                            ),
+                        ],
+                    )
+                ],
+            ),
+            'element with name=list_item was already found when parsing the tree',
+        ),
     ],
 )
 def test_semantic_analyzer_errors(input_xml_element, expected_exception_message):
@@ -311,12 +336,10 @@ def test_semantic_analyzer_errors(input_xml_element, expected_exception_message)
         (
             XmlElement(
                 element_name='root',
-                attributes=[],
                 children=[
                     XmlElement(
                         element_name='animal',
                         attributes=[ElementAttribute(name='type', value='mammal')],
-                        children=None,
                     )
                 ],
             ),
@@ -326,18 +349,37 @@ def test_semantic_analyzer_errors(input_xml_element, expected_exception_message)
         (
             XmlElement(
                 element_name='root',
-                attributes=[],
                 children=[
                     XmlElement(
-                        element_name='vehicle',
+                        element_name='vehicle1',
                         attributes=[ElementAttribute(name='make', value='Toyota')],
-                        children=None,
                     ),
                     XmlElement(
-                        element_name='vehicle',
+                        element_name='vehicle2',
                         attributes=[ElementAttribute(name='make', value='Honda')],
-                        children=None,
                     ),
+                ],
+            ),
+            [{ClassAttribute('make', 'string')}],
+        ),
+        # Test Case 3: Multiple declarations but in a list
+        (
+            XmlElement(
+                element_name='root',
+                children=[
+                    XmlElement(
+                        element_name='vehicles',
+                        children=[
+                            XmlElement(
+                                element_name='vehicle1',
+                                attributes=[ElementAttribute(name='make', value='Toyota')],
+                            ),
+                            XmlElement(
+                                element_name='vehicle2',
+                                attributes=[ElementAttribute(name='make', value='Honda')],
+                            ),
+                        ],
+                    )
                 ],
             ),
             [{ClassAttribute('make', 'string')}],
@@ -349,12 +391,12 @@ def test_semantic_analyzer_errors(input_xml_element, expected_exception_message)
                 attributes=[],
                 children=[
                     XmlElement(
-                        element_name='person',
+                        element_name='person1',
                         attributes=[ElementAttribute(name='name', value='Alice')],
                         children=None,
                     ),
                     XmlElement(
-                        element_name='person',
+                        element_name='person2',
                         attributes=[ElementAttribute(name='age', value='30')],
                         children=None,
                     ),
@@ -365,15 +407,38 @@ def test_semantic_analyzer_errors(input_xml_element, expected_exception_message)
                 {ClassAttribute('age', 'string')},
             ],
         ),
-        # Test Case 4: No declarations (only root)
+        # Test Case 4: Declarations with distinct attribute sets, but there is one to unify both
         (
             XmlElement(
                 element_name='root',
                 attributes=[],
-                children=None,
+                children=[
+                    XmlElement(
+                        element_name='person0',
+                        attributes=[
+                            ElementAttribute(name='name', value='Alice'),
+                            ElementAttribute(name='age', value='30'),
+                        ],
+                        children=None,
+                    ),
+                    XmlElement(
+                        element_name='person1',
+                        attributes=[ElementAttribute(name='name', value='Alice')],
+                        children=None,
+                    ),
+                    XmlElement(
+                        element_name='person2',
+                        attributes=[ElementAttribute(name='age', value='30')],
+                        children=None,
+                    ),
+                ],
             ),
-            [],
+            [
+                {ClassAttribute('name', 'string'), ClassAttribute('age', 'string')},
+            ],
         ),
+        # Test Case 4: No declarations (only root)
+        (XmlElement(element_name='root'), []),
     ],
 )
 def test_semantic_analyzer_output_types(input_xml_element, expected_types):
