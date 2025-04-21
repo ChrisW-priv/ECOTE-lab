@@ -111,13 +111,12 @@ class SemanticAnalyzer:
 
         children = [self.verify_and_build_typed_ast(child, identified_role, strict) for child in element.children]
         if identified_role in ('variable', 'attribute'):
-            is_list = False
-            if len(children) > 1 or parent_role == 'root':
-                is_list = True
+            is_list = len(children) > 1 or parent_role == 'root'
 
             types = set(child.identified_type for child in children)
+
             if is_list and strict and len(types) > 1:
-                raise SemanticError('There are multible different types in the list that is here!')
+                raise SemanticError('There are multiple different types in the list that is here!')
 
             return TypedXmlElement(
                 element_name=element.element_name,

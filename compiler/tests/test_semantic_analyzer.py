@@ -2,6 +2,7 @@ import pytest
 from compiler.semantic_analyzer import SemanticAnalyzer
 from compiler.models import XmlElement, TypedXmlElement
 from compiler.models import ClassAttribute, ElementAttribute
+from compiler.errors import SemanticError
 
 
 @pytest.mark.parametrize(
@@ -207,3 +208,115 @@ def test_semantic_analyzer_empty_expected(input_xml_element, expected_typed_ast)
 
     # Compare the analyzed AST with the initially empty expected AST
     assert analyzed_ast == expected_typed_ast
+
+
+@pytest.mark.parametrize(
+    'input_xml_element, expected_exception_message',
+    [
+        # Test Case 1: Declaration node followed by another declaration node without variable node
+        (
+            XmlElement(
+                element_name='root',
+                attributes=[],
+                children=[
+                    XmlElement(
+                        element_name='declaration1',
+                        attributes=[ElementAttribute(name='attr1', value='value1')],
+                        children=[
+                            XmlElement(
+                                element_name='declaration2',
+                                attributes=[ElementAttribute(name='attr2', value='value2')],
+                                children=None,
+                            )
+                        ],
+                    )
+                ],
+            ),
+            'declaration node cannot be followed by another declaration node without variable node in between',
+        ),
+        # Test Case 2: Node with no attributes following a variable node
+        (
+            XmlElement(
+                element_name='root',
+                attributes=[],
+                children=[
+                    XmlElement(
+                        element_name='variable1',
+                        attributes=[],
+                        children=[
+                            XmlElement(
+                                element_name='variable2',
+                                attributes=[],
+                                children=None,
+                            )
+                        ],
+                    )
+                ],
+            ),
+            "node with parent_role='variable' was followed by node with no attributes!",
+        ),
+        # Test Case 3: Leaf node without attributes
+        (
+            XmlElement(
+                element_name='root',
+                attributes=[],
+                children=[
+                    XmlElement(
+                        element_name='leaf',
+                        attributes=[],  # No attributes should raise error
+                        children=None,
+                    )
+                ],
+            ),
+            'leaf node has to be a declaration node (must have attributes)',
+        ),
+        # Test Case 4: Multiple declarations of the same attribute in a single node
+        (
+            XmlElement(
+                element_name='root',
+                attributes=[],
+                children=[
+                    XmlElement(
+                        element_name='duplicate_attr',
+                        attributes=[
+                            ElementAttribute(name='attr', value='value1'),
+                            ElementAttribute(name='attr', value='value2'),
+                        ],
+                        children=None,
+                    )
+                ],
+            ),
+            'multiple declarations of one attribute in a single node',
+        ),
+        # Test Case 5: Multiple different types in a list with strict=True
+        (
+            XmlElement(
+                element_name='root',
+                attributes=[],
+                children=[
+                    XmlElement(
+                        element_name='root',
+                        children=[
+                            XmlElement(
+                                element_name='list_item1',
+                                attributes=[ElementAttribute(name='attr1', value='value1')],
+                                children=None,
+                            ),
+                            XmlElement(
+                                element_name='list_item2',
+                                attributes=[ElementAttribute(name='attr2', value='value2')],
+                                children=None,
+                            ),
+                        ],
+                    )
+                ],
+            ),
+            'There are multiple different types in the list that is here!',
+        ),
+    ],
+)
+def test_semantic_analyzer_errors(input_xml_element, expected_exception_message):
+    semantic_analyzer = SemanticAnalyzer(input_xml_element)
+    with pytest.raises(SemanticError) as exc_info:
+        semantic_analyzer.analyze()
+    assert str(exc_info.value) == expected_exception_message
