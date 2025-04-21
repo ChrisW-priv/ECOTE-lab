@@ -3,6 +3,7 @@ from compiler.semantic_analyzer import SemanticAnalyzer
 from compiler.models import XmlElement, TypedXmlElement
 from compiler.models import ClassAttribute, ElementAttribute
 from compiler.errors import SemanticError
+from compiler.semantic_analyzer import semantic_analyzer
 
 
 @pytest.mark.parametrize(
@@ -320,3 +321,117 @@ def test_semantic_analyzer_errors(input_xml_element, expected_exception_message)
     with pytest.raises(SemanticError) as exc_info:
         semantic_analyzer.analyze()
     assert str(exc_info.value) == expected_exception_message
+
+
+@pytest.mark.parametrize(
+    'input_xml_element, expected_types',
+    [
+        # Test Case 1: Single declaration with unique attributes
+        (
+            XmlElement(
+                element_name='root',
+                attributes=[],
+                children=[
+                    XmlElement(
+                        element_name='animal',
+                        attributes=[ElementAttribute(name='type', value='mammal')],
+                        children=None,
+                    )
+                ],
+            ),
+            [{ClassAttribute('type', 'string')}],
+        ),
+        # Test Case 2: Multiple declarations with overlapping attributes
+        (
+            XmlElement(
+                element_name='root',
+                attributes=[],
+                children=[
+                    XmlElement(
+                        element_name='vehicle',
+                        attributes=[ElementAttribute(name='make', value='Toyota')],
+                        children=None,
+                    ),
+                    XmlElement(
+                        element_name='vehicle',
+                        attributes=[ElementAttribute(name='make', value='Honda')],
+                        children=None,
+                    ),
+                ],
+            ),
+            [{ClassAttribute('make', 'string')}],
+        ),
+        # Test Case 3: Declarations with distinct attribute sets
+        (
+            XmlElement(
+                element_name='root',
+                attributes=[],
+                children=[
+                    XmlElement(
+                        element_name='person',
+                        attributes=[ElementAttribute(name='name', value='Alice')],
+                        children=None,
+                    ),
+                    XmlElement(
+                        element_name='person',
+                        attributes=[ElementAttribute(name='age', value='30')],
+                        children=None,
+                    ),
+                ],
+            ),
+            [
+                {ClassAttribute('name', 'string')},
+                {ClassAttribute('age', 'string')},
+            ],
+        ),
+        # Test Case 4: Nested declarations with inherited attributes
+        (
+            XmlElement(
+                element_name='root',
+                attributes=[],
+                children=[
+                    XmlElement(
+                        element_name='company',
+                        attributes=[ElementAttribute(name='name', value='OpenAI')],
+                        children=[
+                            XmlElement(
+                                element_name='employees',  # Variable node added here
+                                attributes=[],
+                                children=[
+                                    XmlElement(
+                                        element_name='employee',
+                                        attributes=[ElementAttribute(name='id', value='123')],
+                                        children=None,
+                                    ),
+                                    XmlElement(
+                                        element_name='employee',
+                                        attributes=[ElementAttribute(name='id', value='456')],
+                                        children=None,
+                                    ),
+                                ],
+                            ),
+                        ],
+                    )
+                ],
+            ),
+            [
+                {ClassAttribute('name', 'string'), ClassAttribute('employees', '0')},
+                {ClassAttribute('id', 'string')},
+            ],
+        ),
+        # Test Case 5: No declarations (only root)
+        (
+            XmlElement(
+                element_name='root',
+                attributes=[],
+                children=None,
+            ),
+            [],
+        ),
+    ],
+)
+def test_semantic_analyzer_output_types(input_xml_element, expected_types):
+    output = semantic_analyzer(input_xml_element)
+    actual_types = output.types
+    # Convert sets to sets of frozensets for comparison
+    assert set(frozenset(t) for t in actual_types) == set(frozenset(t) for t in expected_types)
