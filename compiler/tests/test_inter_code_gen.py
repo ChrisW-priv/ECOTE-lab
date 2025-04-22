@@ -16,7 +16,7 @@ from compiler.models import (
         (
             SemanticAnalyzerOutput(
                 types=[
-                    {ClassAttribute('Name', 'string'), ClassAttribute('attr', 'int')},
+                    {ClassAttribute('Name', 'string'), ClassAttribute('attr', '0')},
                 ],
                 typed_ast=TypedXmlElement(
                     element_name='root',
@@ -37,21 +37,12 @@ from compiler.models import (
                                             element_name='cat',
                                             identified_type=0,
                                             identified_role='declaration',
-                                            children=None,
-                                            identified_class=None,
-                                            is_list=False,
                                         ),
                                     ],
-                                    identified_class=None,
-                                    is_list=False,
                                 ),
                             ],
-                            identified_class=None,
-                            is_list=False,
                         )
                     ],
-                    identified_class=None,
-                    is_list=False,
                 ),
             ),
             IntermediateCode(
@@ -60,7 +51,7 @@ from compiler.models import (
                         name='Class1',
                         attributes=[
                             ClassAttribute(name='Name', attribute_type='string'),
-                            ClassAttribute(name='attr', attribute_type='int'),
+                            ClassAttribute(name='attr', attribute_type='Class1'),
                         ],
                     )
                 ],

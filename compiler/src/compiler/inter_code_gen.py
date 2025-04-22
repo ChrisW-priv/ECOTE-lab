@@ -35,7 +35,7 @@ class IntermediateCodeGeneration:
             _type.attributes = attrs
 
     def populate_declarations(self):
-        def rec(element: TypedXmlElement):
+        def rec(element: TypedXmlElement, parent_role: str | None = None):
             if not element.children:  # leaf node
                 id_assigned = self.declaration_seq
                 self.declaration_seq += 1
@@ -44,28 +44,34 @@ class IntermediateCodeGeneration:
                     if element.identified_type == 'string'
                     else self.types[int(element.identified_type)].name
                 )
-                self.declarations.append(
-                    Declaration(id=str(id_assigned), instance_name=element.element_name, class_name=el_type)
-                )  # populate with new declaration
-                return
-            for child in element.children:
-                rec(child)
-                id_assigned = self.declaration_seq
-                self.declaration_seq += 1
-                el_type = (
-                    element.identified_type
-                    if element.identified_type == 'string'
-                    else self.types[int(element.identified_type)].name
-                )
+                is_list = True if parent_role == 'root' and element.identified_role == 'variable' else element.is_list
                 self.declarations.append(
                     Declaration(
-                        id=str(id_assigned),
-                        instance_name=element.element_name,
-                        class_name=el_type,
-                        is_list=element.is_list,
+                        id=str(id_assigned), instance_name=element.element_name, class_name=el_type, is_list=is_list
                     )
-                )  # populate with new declaration
+                )
+                return
+            for child in element.children:
+                rec(child, parent_role=element.identified_role)
+            id_assigned = self.declaration_seq
+            self.declaration_seq += 1
+            el_type = (
+                element.identified_type
+                if element.identified_type == 'string'
+                else self.types[int(element.identified_type)].name
+            )
+            is_list = True if parent_role == 'root' and element.identified_role == 'variable' else element.is_list
+            self.declarations.append(
+                Declaration(
+                    id=str(id_assigned),
+                    instance_name=element.element_name,
+                    class_name=el_type,
+                    is_list=is_list,
+                )
+            )
 
+        if not self.sem_output.typed_ast.children:
+            return
         rec(self.sem_output.typed_ast)
 
 

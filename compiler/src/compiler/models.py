@@ -111,6 +111,9 @@ class Class:
     name: str
     attributes: list[ClassAttribute]
 
+    def __eq__(self, other):
+        return (self.name == other.name) and set(self.attributes) == set(other.attributes)
+
 
 @dataclass
 class IntermediateCode:
