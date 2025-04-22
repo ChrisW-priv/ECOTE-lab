@@ -15,9 +15,12 @@ class SemanticAnalyzer:
         a TypedTree, to signify the purpose of each element.
         """
         self.verify_and_build_typed_ast(self.root)
+
         self.minimize_types()
         self.element_names = []
+
         typed_ast = self.verify_and_build_typed_ast(self.root, strict=True)
+
         return typed_ast
 
     def minimize_types(self):
@@ -101,17 +104,24 @@ class SemanticAnalyzer:
             if len(class_attrs) != len(unique_class_attrs):
                 raise SemanticError('multiple declarations of one attribute in a single node')
 
+            expand = False
+
             for i, glob_identified_type in enumerate(self.identified_types):
                 if unique_class_attrs.issubset(glob_identified_type):
                     identified_type = i
+
                     break
                 elif glob_identified_type.issubset(unique_class_attrs):
                     identified_type = i
-                    glob_identified_type = unique_class_attrs
+                    expand = True
                     break
             else:
                 self.identified_types.append(unique_class_attrs)
                 identified_type = len(self.identified_types) - 1
+                i = 0
+
+            if expand:
+                self.identified_types[i] = unique_class_attrs
 
             return TypedXmlElement(
                 element_name=element.element_name,

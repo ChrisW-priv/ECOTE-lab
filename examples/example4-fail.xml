@@ -1,8 +1,8 @@
 <root>
     <kitten Name="Whiskers">
-        <Parent>
+        <Parents>
             <cat Name="The Garfield"/>
-        </Parent>
+        </Parents>
         <BestFriend>
             <scout Name="Scout"/>
         </BestFriend>
@@ -16,8 +16,9 @@
     </cars>
     <newman Name="Joseph"/>
     <paul Name="Paul Atreides">
-        <Parent>
+        <Parents>
             <pauls_father Name="Duke Leto Atreides I"/>
-        </Parent>
+            <pauls_mother Name="Lady Jessica"/>
+        </Parents>
     </paul>
 </root>

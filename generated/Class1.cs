@@ -2,15 +2,13 @@ using System;
 
 public class Class1
 {
-    public string Name { get; set; }
     public Class1 Parent { get; set; }
-    public Class1 Bestfriend { get; set; }
+    public string Name { get; set; }
 
-    public Class1(string name, Class1 parent, Class1 bestfriend)
+    public Class1(Class1 parent, string name)
     {
-        Name = name;
         Parent = parent;
-        Bestfriend = bestfriend;
+        Name = name;
     }
 
     public override bool Equals(object obj)
