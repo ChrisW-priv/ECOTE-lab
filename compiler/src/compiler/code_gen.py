@@ -31,7 +31,6 @@ def generate_class_code(class_name: str, attributes: list[ClassAttribute]) -> st
 
     # Add boilerplate method declarations
     boilerplate_methods = [
-        '',
         '    public override bool Equals(object obj)',
         '    {',
         '        throw new NotImplementedException();',
@@ -78,7 +77,16 @@ def generate_single_instance_declaration(decl: Declaration, instances: dict, typ
     instance_name = decl.instance_name
     args = []
 
-    sorted_decl_attrs = ...  # TODO: sort values of decl here
+    # Fetch the Class definition for the current declaration's class
+    class_def = next(cls for cls in types if cls.name == class_name)
+
+    # Create a mapping of attribute names to their order in the Class definition
+    attribute_order = {attr.name: index for index, attr in enumerate(class_def.attributes)}
+
+    # Sort the decl.attributes based on the attribute order defined in the Class
+    sorted_decl_attrs = sorted(decl.attributes or [], key=lambda attr: attribute_order.get(attr.name, -1))
+
+    # Modify the decl instance in place with the sorted attributes
     decl.attributes = sorted_decl_attrs
 
     for attr in decl.attributes or []:
@@ -103,9 +111,9 @@ def generate_single_instance_declaration(decl: Declaration, instances: dict, typ
 def generate_list_instance_declaration(decl: Declaration, instances: dict) -> tuple[str, dict]:
     string_list_type = f'List<{decl.class_name}>'
     early_init = f'{string_list_type} {decl.instance_name} = new {string_list_type}();'
-    lines = [string_list_type, early_init]
+    lines = [early_init]
     for x in decl.attributes or []:
-        some_val = f'{decl.instance_name}.add({x.ref});'
+        some_val = f'{decl.instance_name}.add({x.name});'
         lines.append(some_val)
 
     instances[decl.id] = decl.instance_name

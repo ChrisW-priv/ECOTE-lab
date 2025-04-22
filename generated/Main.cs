@@ -1,2 +1,14 @@
 Class1 cat = new Class1("The Garfield");
-Class1 kitten = new Class1("Whiskers", cat);
+Class1 scout = new Class1("Scout");
+Class1 kitten = new Class1(scout, cat, "Whiskers");
+Class1 john = new Class1("John");
+List<Class1> ppl = new List<Class1>();
+ppl.add(john);
+Class1 car1 = new Class1("Lightning");
+Class1 car2 = new Class1("Sally");
+List<Class1> cars = new List<Class1>();
+cars.add(car1);
+cars.add(car2);
+Class1 newman = new Class1("Joseph");
+Class1 pauls_father = new Class1("Duke Leto Atreides I");
+Class1 paul = new Class1(pauls_father, "Paul Atreides");
