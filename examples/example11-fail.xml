@@ -1,0 +1,7 @@
+
+<root>
+    <cars>
+        <car1 Name="Lightning"/>
+        <car2 Kind="Truck"/>
+    </cars>
+</root>
