@@ -1,7 +1,7 @@
 import os
 
 
-def writer(file_map: dict[str, str], output_dir: str) -> None:
+def writer(file_map: dict[str, str], output_dir: str) -> dict[str, str]:
     """
     Writes the generated C# code to disk.
 
@@ -14,3 +14,4 @@ def writer(file_map: dict[str, str], output_dir: str) -> None:
         file_path = os.path.join(output_dir, filename)
         with open(file_path, 'w') as file:
             file.write(content)
+    return file_map

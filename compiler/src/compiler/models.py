@@ -29,7 +29,7 @@ class XmlToken(ABC):
     """
 
 
-@dataclass
+@dataclass(slots=True, frozen=True)
 class ElementAttribute:
     """
     Represents an Attribute of an XML element
@@ -65,6 +65,9 @@ class XmlElement:
     element_name: str
     attributes: list[ElementAttribute] | None = None
     children: list['XmlElement'] | None = None
+
+    def __eq__(self, other):
+        return (self.element_name == other.element_name) and set(self.attributes or []) == set(other.attributes or [])
 
 
 @dataclass(slots=True, frozen=True)

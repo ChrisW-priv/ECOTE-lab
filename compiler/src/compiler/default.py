@@ -18,7 +18,10 @@ def pipe(*functions: Callable) -> Callable:
 
 
 def compiler(input_file: str, output_dir: str, max_func) -> None:
-    functions = (source_reader, scanner, parser, semantic_analyzer, inter_code_gen, code_gen, writer)
+    def writer_app(x):
+        return writer(x, output_dir=output_dir)
+
+    functions = (source_reader, scanner, parser, semantic_analyzer, inter_code_gen, code_gen, writer_app)
     str_functions = (
         'source_reader',
         'scanner',
@@ -26,6 +29,7 @@ def compiler(input_file: str, output_dir: str, max_func) -> None:
         'semantic_analyzer',
         'inter_code_gen',
         'code_gen',
+        'writer',
     )
     max_index = str_functions.index(max_func)
     functions = functions[: max_index + 1]

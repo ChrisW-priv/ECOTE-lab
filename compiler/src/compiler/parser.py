@@ -148,35 +148,43 @@ def build_ast(tokens: Iterable[XmlToken]) -> XmlElement:
         tokens (Iterable[XmlToken]): XML tokens.
 
     Returns:
-        tree_root: Roof of an AST.
+        XmlElement: Root of the AST.
     """
-    stack = []
-    inter_list = []
+    stack = []  # Stack to keep track of open elements
+    children_stack = [[]]  # Stack to keep track of children lists
 
     for token in tokens:
         if isinstance(token, StartToken):
             stack.append(token)
+            children_stack.append([])  # Start collecting children for this element
         elif isinstance(token, SelfClosingToken):
-            element = XmlElement(element_name=token.name, attributes=token.attributes)
-            inter_list.append(element)
+            element = XmlElement(element_name=token.name, attributes=token.attributes, children=None)
+            children_stack[-1].append(element)
         elif isinstance(token, EndToken):
             if not stack:
                 raise InvalidTransitionError(f'Mismatching token end, never opened: {token.name}')
-            if stack and stack[-1].name != token.name:
-                raise InvalidTransitionError(f'Mismatching tokens: {stack[-1].name} and {token.name}')
             start_token = stack.pop()
-            children = inter_list if inter_list else None
-            element = XmlElement(element_name=start_token.name, attributes=start_token.attributes, children=children)
-            inter_list = [element]
+            if start_token.name != token.name:
+                raise InvalidTransitionError(f'Mismatching tokens: {start_token.name} and {token.name}')
+            children = children_stack.pop()
+            element = XmlElement(
+                element_name=start_token.name,
+                attributes=start_token.attributes,
+                children=children if children else None,
+            )
+            children_stack[-1].append(element)
         else:
             raise InvalidTransitionError('Unexpected token type')
 
     if stack:
         raise InvalidTransitionError('Unmatched start tokens remain')
-    if len(inter_list) != 1:
+    if len(children_stack) != 1:
         raise InvalidTransitionError('There is more than one root element!')
 
-    return inter_list[0]
+    if not children_stack[0]:
+        raise InvalidTransitionError('No root element found.')
+
+    return children_stack[0][0]
 
 
 def parser(tokens: Iterable[BaseToken]) -> XmlElement:

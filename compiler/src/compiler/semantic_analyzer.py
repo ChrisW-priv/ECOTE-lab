@@ -56,10 +56,6 @@ class SemanticAnalyzer:
         and do type analysis based on the available attributes of each element
         """
 
-        if element.element_name in self.element_names:
-            raise SemanticError(f'element with name={element.element_name} was already found when parsing the tree')
-        self.element_names.append(element.element_name)
-
         """ 
         The type of the current element: if has attributes then it
         is a declaration, else it is a variable, unless this is a child of
@@ -83,6 +79,11 @@ class SemanticAnalyzer:
                 identified_role = 'attribute'
             if parent_role in ('variable', 'attribute'):
                 raise SemanticError(f'node with {parent_role=} was followed by node with {identified_role=}!')
+
+        if identified_role in ('variable', 'declaration'):
+            if element.element_name in self.element_names:
+                raise SemanticError(f'element with name={element.element_name} was already found when parsing the tree')
+            self.element_names.append(element.element_name)
 
         if not element.children:  # leaf nodes
             if identified_role == 'root':
