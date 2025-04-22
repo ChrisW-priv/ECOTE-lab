@@ -7,50 +7,162 @@ In my implementation there are following tokens present:
 - TEXT - free text that is just floating around, can be composed by alpha characters or "_"
 - STRING - text composed by ANY character, except: STR_BREAK := \[ "\n", EOF \]. This string of characters MUST be wrapped by quotes
 
-We shall implement this as a state machine to prevent any accidental errors due to forgotten state transitions or other
-mistakes.
+The scanner utilizes the `StateTransition` class to manage state changes, implementing a state machine that enforces the defined transitions and rules. This approach ensures robust handling of various input scenarios and prevents errors related to state mismanagement.
 
-START_STATE:
+### Scanner State Transition
 
-- on WS: GOTO START STATE 
-- on alpha: GOTO TEXT_INPUT
+In my implementation, the scanner operates as a state machine managed by the `StateTransition` class. This design encapsulates the state handling logic, making the scanner modular and maintainable.
 
-TEXT_INPUT:
+The scanner recognizes the following tokens:
 
-- on alpha or "_": GOTO TEXT_INPUT (and append the char)
-- on WS: GOTO START_STATE (and yield currently accumulated text)
-- on "<": GOTO SYMBOL (and yield currently accumulated text)
-- on ">": GOTO SYMBOL (and yield currently accumulated text)
-- on "/": error: this is impossible!
-- on numeric char: error: this is impossible!
+- **WS**: Whitespace characters (spaces, tabs, newlines) are ignored.
+- **SYMBOL**: Special characters with predefined meanings: `<`, `/>`, `>`, `/`, `=`
+- **TEXT**: Alphanumeric text and underscores (`_`)
+- **STRING**: Any characters except newline and end-of-file (`EOF`), enclosed in quotes
 
-SYMBOL_INPUT:
+**StateMachine Integration:**
 
-- on any char in FLAT_UNIQUE(SYMBOLS): append to accumulated text.
-  if accumulated SYMBOL is not in the SYMBOLS list: error. else: GOTO SYMBOL
-- on alpha: GOTO TEXT_INPUT (and yield current SYMBOL)
-- on QUOTE: GOTO STRING_INPUT (and yield current SYMBOL)
-- else: invalid transition
+- **`START_STATE`**: Initiates scanning and handles transitions based on the input character.
+- **`TEXT_INPUT`**: Accumulates alphanumeric characters and underscores.
+- **`SYMBOL_INPUT`**: Processes special symbols, utilizing `StateTransition` to validate symbol sequences.
+- **`STRING_INPUT`**: Collects characters within quotes, ensuring proper termination.
+- **`STRING_END`**: Finalizes string tokens and handles post-string transitions.
 
-STRING_INPUT:
+**State Transition Rules:**
 
-- on any char except one in STR_BREAK: append to accumulated text
-- on QUOTE: GOTO STRING_END
+- **START_STATE:**
+  - On **WS**: Remain in `START_STATE`
+  - On **alpha**: Transition to `TEXT_INPUT`
+  - On **"<"**, **">"**, **"/"**, **"="**: Transition to `SYMBOL_INPUT`
+  - On **'"'**: Transition to `STRING_INPUT`
+  - On **numeric characters**: Raise `UnexpectedNumericError`
+  
+- **TEXT_INPUT:**
+  - On **alpha** or **"_"**: Remain in `TEXT_INPUT` and append character
+  - On **WS**: Transition to `START_STATE` and emit accumulated `TEXT` token
+  - On **SYMBOL characters**: Transition to `SYMBOL_INPUT` and emit accumulated `TEXT` token
+  - On **"/"**: Raise `UnexpectedSlashError`
+  
+- **SYMBOL_INPUT:**
+  - On characters forming valid symbols: Append and validate using `StateTransition`
+  - On **alpha**: Transition to `TEXT_INPUT` and emit accumulated `SYMBOL` token
+  - On **'"'**: Transition to `STRING_INPUT` and emit accumulated `SYMBOL` token
+  - On **invalid characters**: Raise `InvalidTransitionError`
+  
+- **STRING_INPUT:**
+  - On **non-terminating characters**: Remain in `STRING_INPUT` and append character
+  - On **'"'**: Transition to `STRING_END`
+  
+- **STRING_END:**
+  - On **WS**: Emit `STRING` token and transition to `START_STATE`
+  - On **invalid characters**: Raise `QuoteFollowedByNonWhitespaceError`
 
-STRING_END:
-
-- on WS: yield curren STRING and GOTO START_STATE
-- else: error: QUOTE cannot be followed by non WS character
-
-Note: FLAT_UNIQUE is a special function that take in a list of strings, and
-returns all unique characters across all strings combined
 
 
 ## Parser State Transition
 
-Role of the Parser is to turn Tokens into AST. but in my implementation, 
-scanner yields tokens that are really atomic. Thus, it makes sense to implement
-parser as two stage:
+The parser employs the `StateTransition` class to manage state transitions, implementing a state machine that processes atomic tokens into structured XML tokens and ultimately builds the Abstract Syntax Tree (AST). This structured approach facilitates error handling and ensures compliance with the defined grammar rules.
+
+### Parser State Transition
+
+In my implementation, the parser functions as a state machine governed by the `StateTransition` class. This design allows for systematic processing of tokens and adheres to the grammar specifications.
+
+#### Build XML Tokens
+
+The parser converts atomic tokens from the scanner into larger XML tokens using the following patterns:
+
+- **ATTRIBUTE**: `TEXT(*) SYMBOL(=) STRING(*)`
+- **StartToken**: `SYMBOL(<) TEXT(*) ATTRIBUTE* SYMBOL(>)`
+- **EndToken**: `SYMBOL(</) TEXT(*) SYMBOL(>)`
+- **SelfClosingToken**: `SYMBOL(<) TEXT(*) ATTRIBUTE* SYMBOL(/>)`
+
+**StateMachine Integration:**
+
+- **`START_STATE`**: Awaits the beginning of an XML element.
+- **`ELEMENT_START`**: Captures the start of an element and its attributes.
+- **`ATTRIBUTE_SET`**: Processes attribute assignments.
+- **`ELEMENT_END`**: Handles the closing of elements.
+- **`SELF_CLOSING`**: Manages self-closing tags.
+
+**State Transition Rules:**
+
+- **START_STATE:**
+  - On **`<`**: Transition to `ELEMENT_START`
+  - Else: Raise `InvalidTransitionError`
+  
+- **ELEMENT_START:**
+  - On **TEXT**: Assign as element name and transition to `ATTRIBUTE_SET`
+  - Else: Raise `InvalidTransitionError`
+  
+- **ATTRIBUTE_SET:**
+  - On **`=`**: Transition to `ATTRIBUTE_SET_VALUE`
+  - On **`>`**: Emit `StartToken` and transition to `IN_DOCUMENT`
+  - On **`/>`**: Emit `SelfClosingToken` and transition to `IN_DOCUMENT`
+  - Else: Raise `InvalidTransitionError`
+  
+- **ATTRIBUTE_SET_VALUE:**
+  - On **STRING**: Assign attribute value and transition back to `ATTRIBUTE_SET`
+  - Else: Raise `InvalidTransitionError`
+  
+- **ELEMENT_END:**
+  - On **TEXT**: Assign as closing element name and transition to `ELEMENT_END_VERIFY`
+  - Else: Raise `InvalidTransitionError`
+  
+- **ELEMENT_END_VERIFY:**
+  - On **`>`**: Emit `EndToken` and transition to `IN_DOCUMENT`
+  - Else: Raise `InvalidTransitionError`
+
+#### Build AST
+
+Using the structured XML tokens, the parser constructs the AST while ensuring syntactic correctness through the state machine rules.
+
+**Example Transformation:**
+
+```xml
+<root>
+    <kitten Name="Whiskers">
+        <parent>
+            <cat Name="The Garfield"/>
+        </parent>
+    </kitten>
+</root>
+```
+
+Transforms into the following AST:
+
+```json
+{
+    "element_name": "root",
+    "children": [
+        {
+            "element_name": "kitten",
+            "attributes": [
+                {
+                    "name": "Name",
+                    "value": "Whiskers"
+                }
+            ],
+            "children": [
+                {
+                    "element_name": "parent",
+                    "children": [
+                        {
+                            "element_name": "cat",
+                            "attributes": [
+                                {
+                                    "name": "Name",
+                                    "value": "The Garfield"
+                                }
+                            ],
+                            "children": null
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
+```
 
 1. Turn atomic tokens into larger, xml tokens 
 2. Turn xml tokens into AST
