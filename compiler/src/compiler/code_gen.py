@@ -1,4 +1,4 @@
-from compiler.models import IntermediateCode, ClassAttribute, Declaration
+from compiler.models import IntermediateCode, ClassAttribute, Declaration, Class
 
 
 def generate_class_code(class_name: str, attributes: list[ClassAttribute]) -> str:
@@ -19,6 +19,15 @@ def generate_class_code(class_name: str, attributes: list[ClassAttribute]) -> st
         # Capitalize the attribute name to follow C# naming conventions
         prop_name = attr.name.title()
         lines.append(f'    public {csharp_type} {prop_name} {{ get; set; }}')
+
+    constructor = [
+        '',
+        f'    public {class_name}({", ".join(f"{attr.attribute_type} {attr.name.lower()}" for attr in attributes)})',
+        '    {',
+    ]
+    for attr in attributes:
+        constructor.append(f'        {attr.name.title()} = {attr.name.lower()};')
+    constructor += ['    }', '']
 
     # Add boilerplate method declarations
     boilerplate_methods = [
@@ -48,12 +57,13 @@ def generate_class_code(class_name: str, attributes: list[ClassAttribute]) -> st
         '        throw new NotImplementedException();',
         '    }',
     ]
+    lines.extend(constructor)
     lines.extend(boilerplate_methods)
     lines.append('}')
     return '\n'.join(lines)
 
 
-def generate_single_instance_declaration(decl: Declaration, instances: dict) -> tuple[str, dict]:
+def generate_single_instance_declaration(decl: Declaration, instances: dict, types: list[Class]) -> tuple[str, dict]:
     """
     Generates a single instance declaration line for Main.cs based on the declaration.
 
@@ -67,6 +77,10 @@ def generate_single_instance_declaration(decl: Declaration, instances: dict) -> 
     class_name = decl.class_name
     instance_name = decl.instance_name
     args = []
+
+    sorted_decl_attrs = ...  # TODO: sort values of decl here
+    decl.attributes = sorted_decl_attrs
+
     for attr in decl.attributes or []:
         if attr.ref:
             # Reference to another instance
@@ -98,7 +112,7 @@ def generate_list_instance_declaration(decl: Declaration, instances: dict) -> tu
     return '\n'.join(lines), instances
 
 
-def generate_main(declarations: list[Declaration]) -> str:
+def generate_main(declarations: list[Declaration], types: list[Class]) -> str:
     """
     Generates the content for Main.cs based on the declarations.
 
@@ -114,7 +128,7 @@ def generate_main(declarations: list[Declaration]) -> str:
         if decl.is_list:
             declaration_line, instances = generate_list_instance_declaration(decl, instances)
         else:
-            declaration_line, instances = generate_single_instance_declaration(decl, instances)
+            declaration_line, instances = generate_single_instance_declaration(decl, instances, types)
         main_lines.append(declaration_line)
     return '\n'.join(main_lines)
 
@@ -146,7 +160,7 @@ def code_gen(intermediate_code: IntermediateCode) -> dict[str, str]:
         code_files[filename] = class_code
 
     # Generate Main.cs based on declarations
-    main_content = generate_main(intermediate_code.declarations)
+    main_content = generate_main(intermediate_code.declarations, intermediate_code.types)
     code_files['Main.cs'] = main_content
 
     return code_files

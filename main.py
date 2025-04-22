@@ -4,9 +4,7 @@ from compiler.settings import Settings
 
 def main():
     settings = Settings()
-    result = (
-        compiler(input_file=settings.input_file, output_dir=settings.output_dir, max_func=settings.max_function) or []
-    )
+    result = compiler(input_file=settings.input_file, output_dir=settings.output_dir, max_func=settings.max_function)
     print(result)
 
 

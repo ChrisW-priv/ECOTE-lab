@@ -57,48 +57,26 @@ from compiler.models import (
                     )
                 ],
                 declarations=[
-                    Declaration(id='0', instance_name='cat', class_name='Class1', is_list=False),
+                    Declaration(
+                        id='0',
+                        instance_name='cat',
+                        class_name='Class1',
+                        attributes=None,
+                        is_list=False,
+                    ),
                     Declaration(
                         id='1',
-                        instance_name='parent',
+                        instance_name='kitten',
                         class_name='Class1',
-                        is_list=False,
                         attributes=[
                             InstanceAttribute(
-                                name='',
+                                name='parent',
                                 value=None,
                                 ref='0',
                                 is_list=False,
                             ),
                         ],
-                    ),
-                    Declaration(
-                        id='2',
-                        instance_name='kitten',
-                        class_name='Class1',
                         is_list=False,
-                        attributes=[
-                            InstanceAttribute(
-                                name='',
-                                value=None,
-                                ref='1',
-                                is_list=False,
-                            ),
-                        ],
-                    ),
-                    Declaration(
-                        id='3',
-                        instance_name='root',
-                        class_name='Class1',
-                        is_list=False,
-                        attributes=[
-                            InstanceAttribute(
-                                name='',
-                                value=None,
-                                ref='2',
-                                is_list=False,
-                            ),
-                        ],
                     ),
                 ],
             ),
@@ -152,23 +130,9 @@ from compiler.models import (
                         is_list=True,
                         attributes=[
                             InstanceAttribute(
-                                name='',
+                                name='img',
                                 value=None,
                                 ref='0',
-                                is_list=False,
-                            ),
-                        ],
-                    ),
-                    Declaration(
-                        id='2',
-                        instance_name='root',
-                        class_name='Class1',
-                        is_list=False,
-                        attributes=[
-                            InstanceAttribute(
-                                name='',
-                                value=None,
-                                ref='1',
                                 is_list=False,
                             ),
                         ],

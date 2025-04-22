@@ -46,13 +46,24 @@ class IntermediateCodeGeneration:
                     else self.types[int(element.identified_type)].name
                 )
                 is_list = parent_role == 'root' and element.identified_role == 'variable'
+                attributes = list(
+                    InstanceAttribute(name=attr.name, value=attr.value) for attr in element.attributes or []
+                )
                 self.declarations.append(
                     Declaration(
-                        id=str(id_assigned), instance_name=element.element_name, class_name=el_type, is_list=is_list
+                        id=str(id_assigned),
+                        instance_name=element.element_name,
+                        class_name=el_type,
+                        is_list=is_list,
+                        attributes=attributes,
                     )
                 )
                 return str(id_assigned)
             ids = [rec(child, parent_role=element.identified_role) for child in element.children]
+            if element.identified_role == 'root':
+                return
+            if element.identified_role == 'attribute':
+                return ids[0]
             id_assigned = self.declaration_seq
             self.declaration_seq += 1
             el_type = (
@@ -61,7 +72,13 @@ class IntermediateCodeGeneration:
                 else self.types[int(element.identified_type)].name
             )
             is_list = parent_role == 'root' and element.identified_role == 'variable'
-            attributes = list(InstanceAttribute(name='', ref=id) for id in ids)
+            immediate_attributes = list(
+                InstanceAttribute(name=attr.name, value=attr.value) for attr in element.attributes or []
+            )
+            child_attributes = list(
+                InstanceAttribute(name=child.element_name, ref=id) for child, id in zip(element.children, ids)
+            )
+            attributes = immediate_attributes + child_attributes
             self.declarations.append(
                 Declaration(
                     id=str(id_assigned),

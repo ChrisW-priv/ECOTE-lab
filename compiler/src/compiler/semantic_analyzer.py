@@ -91,6 +91,7 @@ class SemanticAnalyzer:
                     element_name=element.element_name,
                     identified_type=-1,
                     identified_role=identified_role,
+                    attributes=element.attributes,
                 )
             attrs = element.attributes
             if not attrs:
@@ -116,6 +117,7 @@ class SemanticAnalyzer:
                 element_name=element.element_name,
                 identified_type=identified_type,
                 identified_role=identified_role,
+                attributes=element.attributes,
             )
 
         children = [self.verify_and_build_typed_ast(child, identified_role, strict) for child in element.children]
@@ -133,6 +135,7 @@ class SemanticAnalyzer:
                 element_name=element.element_name,
                 identified_type=children[0].identified_type,
                 identified_role=identified_role,
+                attributes=element.attributes,
                 is_list=is_list,
                 children=children,
             )
@@ -150,23 +153,29 @@ class SemanticAnalyzer:
         unique_class_attrs = set(class_attrs)
         if len(class_attrs) != len(unique_class_attrs):
             raise SemanticError('multiple declarations of one attribute in a single node')
+
+        expand = False
         for i, glob_identified_type in enumerate(self.identified_types):
             if unique_class_attrs.issubset(glob_identified_type):
                 identified_type = i
                 break
             elif glob_identified_type.issubset(unique_class_attrs):
                 identified_type = i
-                glob_identified_type = unique_class_attrs
+                expand = True
                 break
         else:
             self.identified_types.append(unique_class_attrs)
             identified_type = len(self.identified_types) - 1
+
+        if expand:
+            self.identified_types[i] = unique_class_attrs
 
         return TypedXmlElement(
             element_name=element.element_name,
             identified_type=identified_type,
             identified_role=identified_role,
             children=children,
+            attributes=element.attributes,
         )
 
 

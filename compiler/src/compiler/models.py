@@ -130,6 +130,7 @@ class TypedXmlElement:
     identified_type: int
     identified_role: str | None
     children: list['TypedXmlElement'] | None = None
+    attributes: list[ElementAttribute] | None = None
     identified_class: Class | None = None
     is_list: bool = False
 

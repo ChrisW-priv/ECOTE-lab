@@ -3,6 +3,14 @@ using System;
 public class Class1
 {
     public string Name { get; set; }
+    public Class1 Parent { get; set; }
+
+    public Class1(string name, Class1 parent)
+    {
+        Name = name;
+        Parent = parent;
+    }
+
 
     public override bool Equals(object obj)
     {
