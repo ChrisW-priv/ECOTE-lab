@@ -79,10 +79,10 @@ class SemanticAnalyzer:
                 )
         else:
             identified_role = 'variable'
-            if parent_role in ('variable', 'attribute'):
-                raise SemanticError(f'node with {parent_role=} was followed by node with no attributes!')
             if parent_role == 'declaration':
                 identified_role = 'attribute'
+            if parent_role in ('variable', 'attribute'):
+                raise SemanticError(f'node with {parent_role=} was followed by node with {identified_role=}!')
 
         if not element.children:  # leaf nodes
             if identified_role == 'root':

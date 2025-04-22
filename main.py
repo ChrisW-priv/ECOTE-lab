@@ -4,7 +4,10 @@ from compiler.settings import Settings
 
 def main():
     settings = Settings()
-    compiler(settings.input_file, settings.output_dir)
+    result = list(
+        compiler(input_file=settings.input_file, output_dir=settings.output_dir, max_func=settings.max_function)
+    )
+    print(result)
 
 
 if __name__ == '__main__':

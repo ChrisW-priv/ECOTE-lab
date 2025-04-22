@@ -85,7 +85,8 @@ class StateTransition:
         if char == '/':
             raise UnexpectedSlashError("Unexpected '/' in TEXT_INPUT.")
         if char.isdigit():
-            raise UnexpectedNumericError('Numeric character encountered in TEXT_INPUT.')
+            new_state = State(StateName.TEXT_INPUT, state.accumulated + char)
+            return new_state, None
         raise InvalidTransitionError(f"Invalid character '{char}' in TEXT_INPUT.")
 
     def handle_symbol_input(self, state: State, char: str) -> tuple[State, BaseToken | None]:

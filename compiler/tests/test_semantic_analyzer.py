@@ -228,7 +228,7 @@ def test_semantic_analyzer_empty_expected(input_xml_element, expected_typed_ast)
                     )
                 ],
             ),
-            "node with parent_role='variable' was followed by node with no attributes!",
+            "node with parent_role='variable' was followed by node with identified_role='variable'!",
         ),
         # New Test Case: Declaration node with an attribute that is a list
         (
@@ -408,7 +408,7 @@ def test_semantic_analyzer_errors(input_xml_element, expected_exception_message)
             ),
             [{ClassAttribute('make', 'string')}],
         ),
-        # Test Case 3: Declarations with distinct attribute sets
+        # Test Case 4: Declarations with distinct attribute sets
         (
             XmlElement(
                 element_name='root',
@@ -431,7 +431,7 @@ def test_semantic_analyzer_errors(input_xml_element, expected_exception_message)
                 {ClassAttribute('age', 'string')},
             ],
         ),
-        # Test Case 4: Declarations with distinct attribute sets, but there is one to unify both
+        # Test Case 5: Declarations with distinct attribute sets, but there is one to unify both
         (
             XmlElement(
                 element_name='root',
@@ -461,7 +461,7 @@ def test_semantic_analyzer_errors(input_xml_element, expected_exception_message)
                 {ClassAttribute('name', 'string'), ClassAttribute('age', 'string')},
             ],
         ),
-        # Test Case 4: No declarations (only root)
+        # Test Case 6: No declarations (only root)
         (XmlElement(element_name='root'), []),
     ],
 )

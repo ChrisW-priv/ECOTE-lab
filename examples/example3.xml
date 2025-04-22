@@ -1,0 +1,24 @@
+<root>
+    <kitten Name="Whiskers">
+        <Parents>
+            <cat Name="The Garfield"/>
+        </Parents>
+        <BestFriend>
+            <scout Name="Scout"/>
+        </BestFriend>
+    </kitten>
+    <ppl>
+        <john Name="John"/>
+    </ppl>
+    <cars>
+        <car1 Name="Lightning"/>
+        <car2 Name="Sally"/>
+    </cars>
+    <newman Name="Joseph"/>
+    <paul Name="Paul Atreides">
+        <Parents>
+            <pauls_father Name="Duke Leto Atreides I"/>
+            <pauls_mother Name="Lady Jessica"/>
+        </Parents>
+    </paul>
+</root>

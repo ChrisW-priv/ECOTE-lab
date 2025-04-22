@@ -1,7 +1,7 @@
 import pytest
 
 from compiler.models import Symbol, Text, String, StartToken, EndToken, SelfClosingToken, ElementAttribute, XmlElement
-from compiler.parser import build_ast, build_xml_tokens
+from compiler.parser import build_ast, build_xml_tokens, parser
 from compiler.errors import InvalidTransitionError
 
 
@@ -271,3 +271,184 @@ def test_parser_failure(tokens, expected_exception, exception_message):
     with pytest.raises(expected_exception) as exc_info:
         build_ast(tokens)
     assert str(exc_info.value) == exception_message
+
+
+@pytest.mark.parametrize(
+    'input_tokens, expected',
+    [
+        (
+            [
+                Symbol(value='<'),
+                Text(value='root'),
+                Symbol(value='>'),
+                Symbol(value='<'),
+                Text(value='kitten'),
+                Text(value='Name'),
+                Symbol(value='='),
+                String(value='Whiskers'),
+                Symbol(value='>'),
+                Symbol(value='<'),
+                Text(value='Parents'),
+                Symbol(value='>'),
+                Symbol(value='<'),
+                Text(value='cat'),
+                Text(value='Name'),
+                Symbol(value='='),
+                String(value='The Garfield'),
+                Symbol(value='/>'),
+                Symbol(value='</'),
+                Text(value='Parents'),
+                Symbol(value='>'),
+                Symbol(value='<'),
+                Text(value='BestFriend'),
+                Symbol(value='>'),
+                Symbol(value='<'),
+                Text(value='scout'),
+                Text(value='Name'),
+                Symbol(value='='),
+                String(value='Scout'),
+                Symbol(value='/>'),
+                Symbol(value='</'),
+                Text(value='BestFriend'),
+                Symbol(value='>'),
+                Symbol(value='</'),
+                Text(value='kitten'),
+                Symbol(value='>'),
+                Symbol(value='<'),
+                Text(value='ppl'),
+                Symbol(value='>'),
+                Symbol(value='<'),
+                Text(value='john'),
+                Text(value='Name'),
+                Symbol(value='='),
+                String(value='John'),
+                Symbol(value='/>'),
+                Symbol(value='</'),
+                Text(value='ppl'),
+                Symbol(value='>'),
+                Symbol(value='<'),
+                Text(value='cars'),
+                Symbol(value='>'),
+                Symbol(value='<'),
+                Text(value='car1'),
+                Text(value='Name'),
+                Symbol(value='='),
+                String(value='Lightning'),
+                Symbol(value='/>'),
+                Symbol(value='<'),
+                Text(value='car2'),
+                Text(value='Name'),
+                Symbol(value='='),
+                String(value='Sally'),
+                Symbol(value='/>'),
+                Symbol(value='</'),
+                Text(value='cars'),
+                Symbol(value='>'),
+                Symbol(value='<'),
+                Text(value='newman'),
+                Text(value='Name'),
+                Symbol(value='='),
+                String(value='Joseph'),
+                Symbol(value='/>'),
+                Symbol(value='<'),
+                Text(value='paul'),
+                Text(value='Name'),
+                Symbol(value='='),
+                String(value='Paul Atreides'),
+                Symbol(value='>'),
+                Symbol(value='<'),
+                Text(value='Parents'),
+                Symbol(value='>'),
+                Symbol(value='<'),
+                Text(value='pauls_father'),
+                Text(value='Name'),
+                Symbol(value='='),
+                String(value='Duke Leto Atreides I'),
+                Symbol(value='/>'),
+                Symbol(value='<'),
+                Text(value='pauls_mother'),
+                Text(value='Name'),
+                Symbol(value='='),
+                String(value='Lady Jessica'),
+                Symbol(value='/>'),
+                Symbol(value='</'),
+                Text(value='Parents'),
+                Symbol(value='>'),
+                Symbol(value='</'),
+                Text(value='paul'),
+                Symbol(value='>'),
+                Symbol(value='</'),
+                Text(value='root'),
+                Symbol(value='>'),
+            ],
+            XmlElement(
+                element_name='root',
+                children=[
+                    XmlElement(
+                        'paul',
+                        attributes=[ElementAttribute('Name', 'Paul Atreides')],
+                        children=[
+                            XmlElement(
+                                'Parents',
+                                children=[
+                                    XmlElement(
+                                        'pauls_father',
+                                        attributes=[ElementAttribute('Name', 'Duke Leto Atreides I')],
+                                    ),
+                                    XmlElement(
+                                        'pauls_mother',
+                                        attributes=[ElementAttribute('Name', 'Lady Jessica')],
+                                    ),
+                                ],
+                            )
+                        ],
+                    ),
+                    XmlElement(
+                        'kitten',
+                        attributes=[ElementAttribute('Name', 'Whiskers')],
+                        children=[
+                            XmlElement(
+                                'Parents',
+                                children=[
+                                    XmlElement(
+                                        'cat',
+                                        attributes=[ElementAttribute('Name', 'The Garfield')],
+                                    )
+                                ],
+                            ),
+                            XmlElement(
+                                'BestFriend',
+                                children=[
+                                    XmlElement(
+                                        'scout',
+                                        attributes=[ElementAttribute('Name', 'Scout')],
+                                    )
+                                ],
+                            ),
+                        ],
+                    ),
+                    XmlElement(
+                        'ppl', children=[XmlElement('john', attributes=[ElementAttribute('Name', 'The Garfield')])]
+                    ),
+                    XmlElement(
+                        'cars',
+                        children=[
+                            XmlElement(
+                                'car1',
+                                attributes=[ElementAttribute('Name', 'Lightning')],
+                            ),
+                            XmlElement(
+                                'car2',
+                                attributes=[ElementAttribute('Name', 'Sally')],
+                            ),
+                        ],
+                    ),
+                    XmlElement('newman', attributes=[ElementAttribute('Name', 'Joseph')]),
+                ],
+            ),
+        ),
+    ],
+)
+def test_parser_full_run_success(input_tokens, expected):
+    output = parser(input_tokens)
+    assert output == expected

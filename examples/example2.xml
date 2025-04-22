@@ -1,0 +1,7 @@
+<root>
+    <kitten Name="Whiskers">
+        <parent>
+            <cat Name="The Garfield"/>
+        </parent>
+    </kitten>
+</root>
