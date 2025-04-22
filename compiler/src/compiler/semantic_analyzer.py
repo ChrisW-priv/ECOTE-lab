@@ -56,6 +56,10 @@ class SemanticAnalyzer:
         and do type analysis based on the available attributes of each element
         """
 
+        if element.element_name in self.element_names:
+            raise SemanticError(f'element with name={element.element_name} was already found when parsing the tree')
+        self.element_names.append(element.element_name)
+
         """ 
         The type of the current element: if has attributes then it
         is a declaration, else it is a variable, unless this is a child of
@@ -65,9 +69,6 @@ class SemanticAnalyzer:
         parent_role is None, in which case it makes sense to identify it as
         root node.
         """
-        if element.element_name in self.element_names:
-            raise SemanticError(f'element with name={element.element_name} was already found when parsing the tree')
-        self.element_names.append(element.element_name)
         if parent_role is None:
             identified_role = 'root'
         elif element.attributes:
@@ -132,6 +133,7 @@ class SemanticAnalyzer:
                 identified_type=children[0].identified_type,
                 identified_role=identified_role,
                 is_list=is_list,
+                children=children,
             )
         if identified_role == 'root':
             return TypedXmlElement(
@@ -163,6 +165,7 @@ class SemanticAnalyzer:
             element_name=element.element_name,
             identified_type=identified_type,
             identified_role=identified_role,
+            children=children,
         )
 
 

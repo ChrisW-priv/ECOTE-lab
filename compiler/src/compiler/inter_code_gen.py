@@ -45,7 +45,7 @@ class IntermediateCodeGeneration:
                     else self.types[int(element.identified_type)].name
                 )
                 self.declarations.append(
-                    Declaration(str(id_assigned), element.element_name, el_type)
+                    Declaration(id=str(id_assigned), instance_name=element.element_name, class_name=el_type)
                 )  # populate with new declaration
                 return
             for child in element.children:
@@ -58,7 +58,12 @@ class IntermediateCodeGeneration:
                     else self.types[int(element.identified_type)].name
                 )
                 self.declarations.append(
-                    Declaration(str(id_assigned), element.element_name, el_type, element.is_list)
+                    Declaration(
+                        id=str(id_assigned),
+                        instance_name=element.element_name,
+                        class_name=el_type,
+                        is_list=element.is_list,
+                    )
                 )  # populate with new declaration
 
         rec(self.sem_output.typed_ast)

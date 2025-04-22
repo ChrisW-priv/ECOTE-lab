@@ -91,7 +91,25 @@ def test_minimize_types(input_identified_types, expected_minimized_types):
                         element_name='kitten',
                         identified_type=0,
                         identified_role='declaration',
-                        children=None,
+                        children=[
+                            TypedXmlElement(
+                                element_name='parent',
+                                identified_type=0,
+                                identified_role='attribute',
+                                children=[
+                                    TypedXmlElement(
+                                        element_name='cat',
+                                        identified_type=0,
+                                        identified_role='declaration',
+                                        children=None,
+                                        identified_class=None,
+                                        is_list=False,
+                                    ),
+                                ],
+                                identified_class=None,
+                                is_list=False,
+                            ),
+                        ],
                         identified_class=None,
                         is_list=False,
                     )
@@ -139,7 +157,13 @@ def test_minimize_types(input_identified_types, expected_minimized_types):
                         element_name='body',
                         identified_type=0,
                         identified_role='variable',
-                        children=None,
+                        children=[
+                            TypedXmlElement(
+                                element_name='img',
+                                identified_type=0,
+                                identified_role='declaration',
+                            )
+                        ],
                         identified_class=None,
                         is_list=True,
                     )
