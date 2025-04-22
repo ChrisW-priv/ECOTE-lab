@@ -86,6 +86,7 @@ class InstanceAttribute:
     name: str
     value: str | None = None
     ref: str | None = None
+    is_list: bool = False
 
 
 @dataclass
@@ -98,6 +99,7 @@ class Declaration:
     instance_name: str
     class_name: str
     attributes: list[InstanceAttribute] | None = None
+    is_list: bool = False
 
 
 @dataclass
@@ -124,3 +126,9 @@ class TypedXmlElement:
     children: list['TypedXmlElement'] | None = None
     identified_class: Class | None = None
     is_list: bool = False
+
+
+@dataclass
+class SemanticAnalyzerOutput:
+    typed_ast: TypedXmlElement
+    types: list[set[ClassAttribute]]

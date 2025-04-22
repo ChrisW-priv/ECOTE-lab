@@ -1,5 +1,4 @@
-from dataclasses import dataclass
-from compiler.models import ClassAttribute, TypedXmlElement, XmlElement
+from compiler.models import ClassAttribute, TypedXmlElement, XmlElement, SemanticAnalyzerOutput
 from compiler.errors import SemanticError
 
 
@@ -165,12 +164,6 @@ class SemanticAnalyzer:
             identified_type=identified_type,
             identified_role=identified_role,
         )
-
-
-@dataclass
-class SemanticAnalyzerOutput:
-    typed_ast: TypedXmlElement
-    types: list[set[ClassAttribute]]
 
 
 def semantic_analyzer(ast: XmlElement) -> SemanticAnalyzerOutput:
