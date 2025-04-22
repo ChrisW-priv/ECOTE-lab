@@ -53,7 +53,7 @@ def generate_class_code(class_name: str, attributes: list[ClassAttribute]) -> st
     return '\n'.join(lines)
 
 
-def generate_instance_declaration(decl: Declaration, instances: dict) -> tuple[str, dict]:
+def generate_single_instance_declaration(decl: Declaration, instances: dict) -> tuple[str, dict]:
     """
     Generates a single instance declaration line for Main.cs based on the declaration.
 
@@ -67,7 +67,7 @@ def generate_instance_declaration(decl: Declaration, instances: dict) -> tuple[s
     class_name = decl.class_name
     instance_name = decl.instance_name
     args = []
-    for attr in decl.attributes:
+    for attr in decl.attributes or []:
         if attr.ref:
             # Reference to another instance
             ref_instance = instances.get(attr.ref)
@@ -82,8 +82,20 @@ def generate_instance_declaration(decl: Declaration, instances: dict) -> tuple[s
             args.append('null')
     args_str = ', '.join(args)
     declaration_line = f'{class_name} {instance_name} = new {class_name}({args_str});'
-    instances[decl.id] = instance_name  # Store instance for future references
+    instances[decl.id] = instance_name
     return declaration_line, instances
+
+
+def generate_list_instance_declaration(decl: Declaration, instances: dict) -> tuple[str, dict]:
+    string_list_type = f'List<{decl.class_name}>'
+    early_init = f'{string_list_type} {decl.instance_name} = new {string_list_type}();'
+    lines = [string_list_type, early_init]
+    for x in decl.attributes or []:
+        some_val = f'{decl.instance_name}.add({x.ref});'
+        lines.append(some_val)
+
+    instances[decl.id] = decl.instance_name
+    return '\n'.join(lines), instances
 
 
 def generate_main(declarations: list[Declaration]) -> str:
@@ -99,7 +111,10 @@ def generate_main(declarations: list[Declaration]) -> str:
     main_lines = []
     instances = {}
     for decl in declarations:
-        declaration_line, instances = generate_instance_declaration(decl, instances)
+        if decl.is_list:
+            declaration_line, instances = generate_list_instance_declaration(decl, instances)
+        else:
+            declaration_line, instances = generate_single_instance_declaration(decl, instances)
         main_lines.append(declaration_line)
     return '\n'.join(main_lines)
 

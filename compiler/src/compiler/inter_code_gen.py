@@ -1,5 +1,6 @@
 from compiler.models import (
     ClassAttribute,
+    InstanceAttribute,
     IntermediateCode,
     SemanticAnalyzerOutput,
     Class,
@@ -44,15 +45,14 @@ class IntermediateCodeGeneration:
                     if element.identified_type == 'string'
                     else self.types[int(element.identified_type)].name
                 )
-                is_list = True if parent_role == 'root' and element.identified_role == 'variable' else element.is_list
+                is_list = parent_role == 'root' and element.identified_role == 'variable'
                 self.declarations.append(
                     Declaration(
                         id=str(id_assigned), instance_name=element.element_name, class_name=el_type, is_list=is_list
                     )
                 )
-                return
-            for child in element.children:
-                rec(child, parent_role=element.identified_role)
+                return str(id_assigned)
+            ids = [rec(child, parent_role=element.identified_role) for child in element.children]
             id_assigned = self.declaration_seq
             self.declaration_seq += 1
             el_type = (
@@ -60,15 +60,18 @@ class IntermediateCodeGeneration:
                 if element.identified_type == 'string'
                 else self.types[int(element.identified_type)].name
             )
-            is_list = True if parent_role == 'root' and element.identified_role == 'variable' else element.is_list
+            is_list = parent_role == 'root' and element.identified_role == 'variable'
+            attributes = list(InstanceAttribute(name='', ref=id) for id in ids)
             self.declarations.append(
                 Declaration(
                     id=str(id_assigned),
                     instance_name=element.element_name,
                     class_name=el_type,
                     is_list=is_list,
+                    attributes=attributes,
                 )
             )
+            return str(id_assigned)
 
         if not self.sem_output.typed_ast.children:
             return

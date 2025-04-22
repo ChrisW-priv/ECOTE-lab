@@ -7,6 +7,7 @@ from compiler.models import (
     Class,
     Declaration,
     ClassAttribute,
+    InstanceAttribute,
 )
 
 
@@ -57,9 +58,48 @@ from compiler.models import (
                 ],
                 declarations=[
                     Declaration(id='0', instance_name='cat', class_name='Class1', is_list=False),
-                    Declaration(id='1', instance_name='parent', class_name='Class1', is_list=False),
-                    Declaration(id='2', instance_name='kitten', class_name='Class1', is_list=False),
-                    Declaration(id='3', instance_name='root', class_name='Class1', is_list=False),
+                    Declaration(
+                        id='1',
+                        instance_name='parent',
+                        class_name='Class1',
+                        is_list=False,
+                        attributes=[
+                            InstanceAttribute(
+                                name='',
+                                value=None,
+                                ref='0',
+                                is_list=False,
+                            ),
+                        ],
+                    ),
+                    Declaration(
+                        id='2',
+                        instance_name='kitten',
+                        class_name='Class1',
+                        is_list=False,
+                        attributes=[
+                            InstanceAttribute(
+                                name='',
+                                value=None,
+                                ref='1',
+                                is_list=False,
+                            ),
+                        ],
+                    ),
+                    Declaration(
+                        id='3',
+                        instance_name='root',
+                        class_name='Class1',
+                        is_list=False,
+                        attributes=[
+                            InstanceAttribute(
+                                name='',
+                                value=None,
+                                ref='2',
+                                is_list=False,
+                            ),
+                        ],
+                    ),
                 ],
             ),
         ),
@@ -95,25 +135,44 @@ from compiler.models import (
                                     element_name='img',
                                     identified_type=0,
                                     identified_role='declaration',
-                                    children=None,
-                                    identified_class=None,
-                                    is_list=False,
                                 )
                             ],
-                            identified_class=None,
-                            is_list=True,
                         )
                     ],
-                    identified_class=None,
-                    is_list=False,
                 ),
             ),
             IntermediateCode(
                 types=[Class(name='Class1', attributes=[ClassAttribute(name='src', attribute_type='string')])],
                 declarations=[
                     Declaration(id='0', instance_name='img', class_name='Class1', is_list=False),
-                    Declaration(id='1', instance_name='body', class_name='Class1', is_list=True),
-                    Declaration(id='2', instance_name='root', class_name='Class1', is_list=False),
+                    Declaration(
+                        id='1',
+                        instance_name='body',
+                        class_name='Class1',
+                        is_list=True,
+                        attributes=[
+                            InstanceAttribute(
+                                name='',
+                                value=None,
+                                ref='0',
+                                is_list=False,
+                            ),
+                        ],
+                    ),
+                    Declaration(
+                        id='2',
+                        instance_name='root',
+                        class_name='Class1',
+                        is_list=False,
+                        attributes=[
+                            InstanceAttribute(
+                                name='',
+                                value=None,
+                                ref='1',
+                                is_list=False,
+                            ),
+                        ],
+                    ),
                 ],
             ),
         ),
