@@ -61,7 +61,7 @@ from compiler.models import (
                         id='0',
                         instance_name='cat',
                         class_name='Class1',
-                        attributes=None,
+                        attributes=[],
                         is_list=False,
                     ),
                     Declaration(
@@ -122,7 +122,7 @@ from compiler.models import (
             IntermediateCode(
                 types=[Class(name='Class1', attributes=[ClassAttribute(name='src', attribute_type='string')])],
                 declarations=[
-                    Declaration(id='0', instance_name='img', class_name='Class1', is_list=False),
+                    Declaration(id='0', instance_name='img', class_name='Class1', is_list=False, attributes=[]),
                     Declaration(
                         id='1',
                         instance_name='body',

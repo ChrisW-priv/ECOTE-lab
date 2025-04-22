@@ -40,7 +40,8 @@ class1 = Class('Class1', [ClassAttribute('Name', 'string'), ClassAttribute('Pare
                             'Class1',
                             [InstanceAttribute('Name', 'Whiskers'), InstanceAttribute('Parent', ref='0001')],
                         ),
-                    ]
+                    ],
+                    [class1],
                 ),
             },
         ),
